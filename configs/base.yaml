@@ -1,0 +1,165 @@
+project:
+  name: face_recognition
+  version: "1.0.0"
+  seed: 42
+
+# ---------------------------------------------------------------------------
+# W&B
+# ---------------------------------------------------------------------------
+wandb:
+  enabled: true
+  project: face-recognition-benchmark
+  entity: null          # set to your W&B username / team
+  tags: []
+  notes: ""
+  log_freq: 50          # steps between metric logs
+
+# ---------------------------------------------------------------------------
+# Data
+# ---------------------------------------------------------------------------
+data:
+  lfw_path: data/raw/lfw
+  train_path: data/raw/train_dataset
+  processed_path: data/processed
+  augmented_path: data/augmented
+
+  image_size: 112       # final face crop size fed to models (px)
+  num_workers: 4
+  pin_memory: true
+
+  # LFW pairs protocol
+  lfw_pairs_csv: data/raw/test.csv
+  lfw_faces_dir: data/raw/Faces
+
+  # Identity dataset requirements
+  min_identities: 100
+  min_images_per_identity: 5
+
+  # Augmentation probabilities
+  augmentation:
+    enabled: true
+    horizontal_flip_prob: 0.5
+    brightness_jitter: 0.3
+    contrast_jitter: 0.3
+    blur_prob: 0.2
+    blur_kernel_size: 5
+    occlusion_prob: 0.2
+    occlusion_max_ratio: 0.3   # max fraction of image to occlude
+
+# ---------------------------------------------------------------------------
+# Preprocessing
+# ---------------------------------------------------------------------------
+preprocessing:
+  detector: mtcnn         # mtcnn | retinaface
+  alignment_landmarks: 5  # number of facial landmarks for alignment
+  normalization_mean: [0.5, 0.5, 0.5]
+  normalization_std: [0.5, 0.5, 0.5]
+
+# ---------------------------------------------------------------------------
+# Model
+# ---------------------------------------------------------------------------
+model:
+  name: arcface           # softmax | facenet | sphereface | arcface
+  backbone: resnet50      # resnet50 | resnet100 | mobilenet_v2
+  embedding_dim: 512
+  pretrained_backbone: true
+  dropout: 0.0
+
+# ---------------------------------------------------------------------------
+# Loss functions
+# ---------------------------------------------------------------------------
+loss:
+  # --- ArcFace ---
+  arcface:
+    margin: 0.5
+    scale: 64.0
+    easy_margin: false
+
+  # --- SphereFace ---
+  sphereface:
+    margin: 4             # multiplicative angular margin (m)
+    scale: 64.0
+
+  # --- Triplet ---
+  triplet:
+    margin: 0.3
+    mining: semi-hard     # hard | semi-hard | random
+    batch_hard: true
+
+  # --- Softmax baseline ---
+  softmax:
+    label_smoothing: 0.0
+
+# ---------------------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------------------
+training:
+  epochs: 100
+  batch_size: 64
+  learning_rate: 0.1
+  weight_decay: 5.0e-4
+  momentum: 0.9
+  lr_scheduler: cosine    # cosine | step | multistep
+  lr_step_size: 30
+  lr_gamma: 0.1
+  lr_milestones: [30, 60, 90]
+  warmup_epochs: 5
+  gradient_clip: 5.0
+  amp: true               # automatic mixed precision
+  checkpoint_dir: checkpoints
+  save_every_n_epochs: 10
+
+# ---------------------------------------------------------------------------
+# Evaluation
+# ---------------------------------------------------------------------------
+evaluation:
+  batch_size: 128
+  distance_metric: cosine   # cosine | euclidean
+  # Threshold sweep for ROC / EER computation
+  threshold_min: 0.0
+  threshold_max: 1.0
+  threshold_steps: 1000
+  # Fixed operating threshold for attendance
+  recognition_threshold: 0.6
+  # Robustness evaluation
+  robustness:
+    blur_sigmas: [1.0, 2.0, 3.0]
+    brightness_deltas: [-0.3, -0.15, 0.15, 0.3]
+    occlusion_ratios: [0.1, 0.2, 0.3]
+
+# ---------------------------------------------------------------------------
+# FAISS
+# ---------------------------------------------------------------------------
+faiss:
+  index_type: flat_l2     # flat_l2 | ivf | hnsw
+  index_dir: data/processed/faiss_indexes
+  nprobe: 32              # IVF search parameter
+  hnsw_m: 32              # HNSW graph degree
+  top_k: 5                # neighbours returned per query
+
+# ---------------------------------------------------------------------------
+# Attendance system
+# ---------------------------------------------------------------------------
+attendance:
+  database_url: sqlite:///data/processed/attendance.db
+  confidence_threshold: 0.7
+  cooldown_seconds: 30    # min seconds between two records for the same person
+
+# ---------------------------------------------------------------------------
+# API
+# ---------------------------------------------------------------------------
+api:
+  host: 0.0.0.0
+  port: 8000
+  workers: 2
+  max_upload_size_mb: 10
+  cors_origins: ["*"]
+  log_level: info
+
+# ---------------------------------------------------------------------------
+# Latency benchmarking
+# ---------------------------------------------------------------------------
+benchmark:
+  warmup_runs: 10
+  timed_runs: 100
+  device: cuda            # cuda | cpu
