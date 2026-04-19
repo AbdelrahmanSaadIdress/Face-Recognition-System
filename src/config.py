@@ -105,7 +105,7 @@ class ModelConfig:
     _VALID_BACKBONES: dataclasses.InitVar = None
 
     def __post_init__(self, _n: None = None, _b: None = None) -> None:
-        valid_names = {"softmax", "facenet", "sphereface", "arcface"}
+        valid_names = {"softmax", "facenet", "sphereface", "arcface", "triplet"}
         valid_backbones = {"resnet50", "resnet100", "mobilenet_v2"}
         if self.name not in valid_names:
             raise ValueError(
