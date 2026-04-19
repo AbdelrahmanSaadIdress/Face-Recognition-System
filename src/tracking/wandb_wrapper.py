@@ -1,14 +1,5 @@
 """
 W&B experiment tracking wrapper.
-
-Rules
------
-- This is the ONLY file that imports `wandb`.
-- All other modules import from here — never `import wandb` elsewhere.
-- When wandb.enabled is False, every method is a no-op so the rest of
-  the codebase needs zero conditional logic.
-- All public methods are typed and documented.
-- No method exceeds 40 lines.
 """
 
 from __future__ import annotations
@@ -70,15 +61,19 @@ class ExperimentTracker:
         Initialise a W&B run.
 
         Args:
-            run_name:         Human-readable run identifier.
-            config_overrides: Extra key/value pairs merged into the logged
-                              config (e.g. sweep parameters).
+            run_name:           Human-readable run identifier.
+            config_overrides:   Extra key/value pairs merged into the logged
+                                config (e.g. sweep parameters).
         """
         if not self._enabled:
             logger.info("Tracking disabled — skipping run init (%s)", run_name)
             return
+        import dataclasses
 
-        run_config = {**self._cfg.model_dump(), **(config_overrides or {})}
+        run_config = {
+            **dataclasses.asdict(self._cfg),
+            **(config_overrides or {}),
+        }
 
         self._run = _wandb.init(
             project=self._cfg.wandb.project,
@@ -87,7 +82,7 @@ class ExperimentTracker:
             config=run_config,
             tags=self._cfg.wandb.tags,
             notes=self._cfg.wandb.notes,
-            reinit=True,
+            finish_previous=True,
         )
         logger.info("W&B run started: %s", run_name)
 

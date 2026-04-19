@@ -1,0 +1,38 @@
+{
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "python": "CPython 3.10.19",
+  "startedAt": "2026-04-19T13:46:36.921589Z",
+  "program": "/mnt/d/AI PROJECTS/ComputerVision PROJECTS/Face-Recognition-System/train.py",
+  "codePath": "train.py",
+  "codePathLocal": "train.py",
+  "git": {
+    "remote": "https://github.com/AbdelrahmanSaadIdress/Face-Recognition-System.git",
+    "commit": "05b74b517cf08ed00021f4904a8b5cd15df8ea57"
+  },
+  "root": "/mnt/d/AI PROJECTS/ComputerVision PROJECTS/Face-Recognition-System",
+  "host": "DESKTOP-A45RLCO",
+  "executable": "/home/abdo/miniconda3/envs/FR_env/bin/python",
+  "cpu_count": 6,
+  "cpu_count_logical": 12,
+  "gpu": "NVIDIA GeForce GTX 1650",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "1081101176832",
+      "used": "52173627392"
+    }
+  },
+  "memory": {
+    "total": "10178744320"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce GTX 1650",
+      "memoryTotal": "4294967296",
+      "architecture": "Turing",
+      "uuid": "GPU-a8e5f6c0-2851-6982-9cd9-34956fb98eaa"
+    }
+  ],
+  "cudaVersion": "13.0",
+  "writerId": "bvsx5iczav0q1sbl20zfq1fhym5sepjv"
+}

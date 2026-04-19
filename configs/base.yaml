@@ -19,7 +19,7 @@ wandb:
 # ---------------------------------------------------------------------------
 data:
   lfw_path: data/raw/lfw
-  train_path: data/raw/train_dataset
+  train_path: data/raw/identities
   processed_path: data/processed
   augmented_path: data/augmented
 
@@ -96,7 +96,7 @@ loss:
 training:
   epochs: 100
   batch_size: 64
-  learning_rate: 0.1
+  learning_rate: 0.001
   weight_decay: 5.0e-4
   momentum: 0.9
   lr_scheduler: cosine    # cosine | step | multistep
