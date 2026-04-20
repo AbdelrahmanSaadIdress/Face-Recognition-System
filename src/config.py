@@ -68,6 +68,8 @@ class DataConfig:
     pin_memory: bool = True
     min_identities: int = 100
     min_images_per_identity: int = 5
+    max_identities: int = 1000
+    max_images_per_identity: int = 100
     augmentation: AugmentationConfig = field(default_factory=AugmentationConfig)
 
 

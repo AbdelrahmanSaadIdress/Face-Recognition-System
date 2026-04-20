@@ -34,6 +34,8 @@ data:
   # Identity dataset requirements
   min_identities: 100
   min_images_per_identity: 5
+  max_identities: 1000
+  max_images_per_identity: 100
 
   # Augmentation probabilities
   augmentation:

@@ -10,15 +10,6 @@ Expected directory layout:
         <identity_name>/
             ...
 
-Contract
---------
-- Each subdirectory is one identity.
-- Images are pre-cropped faces; no detection is run.
-- Augmentation is applied on-the-fly when `split="train"`.
-- `PreprocessingPipeline` handles resize + normalize + HWC→CHW.
-- Returns (image_tensor, label_int).
-- Validates min_identities and min_images_per_identity at init time.
-- Labels are contiguous integers 0 … N-1, alphabetically sorted by identity.
 """
 
 from __future__ import annotations
@@ -173,7 +164,7 @@ class TrainFaceDataset(Dataset):
         identity_label     : int in [0, num_identities).
 
     Args:
-        data_cfg:       DataConfig — paths, image_size, min requirements.
+        data_cfg:       DataConfig — paths, image_size, min/max requirements.
         preproc_cfg:    PreprocessingConfig — normalisation params.
         split:          "train" enables augmentation; "val" disables it.
         transform:      Optional extra torchvision-style transform applied
@@ -206,6 +197,8 @@ class TrainFaceDataset(Dataset):
             root=root,
             min_identities=data_cfg.min_identities,
             min_images=data_cfg.min_images_per_identity,
+            max_identities=data_cfg.max_identities,           
+            max_images=data_cfg.max_images_per_identity,      
         )
 
         logger.info(
@@ -225,6 +218,8 @@ class TrainFaceDataset(Dataset):
         root: Path,
         min_identities: int,
         min_images: int,
+        max_identities: Optional[int] = None,
+        max_images: Optional[int] = None,
     ) -> tuple[list[tuple[Path, int]], dict[str, int]]:
         """
         Walk `root`, build (image_path, label) sample list.
@@ -233,6 +228,10 @@ class TrainFaceDataset(Dataset):
             root:            Dataset root — one subdir per identity.
             min_identities:  Minimum acceptable identity count.
             min_images:      Minimum images required per identity.
+            max_identities:  Cap on number of identities to load
+                             (first N alphabetically). None = no cap.
+            max_images:      Cap on images loaded per identity
+                             (first N alphabetically). None = no cap.
 
         Returns:
             samples:   List of (Path, int) tuples.
@@ -256,7 +255,11 @@ class TrainFaceDataset(Dataset):
         samples: list[tuple[Path, int]] = []
         skipped: list[str] = []
 
-        for label_idx, identity_dir in enumerate(identity_dirs):
+        for identity_dir in identity_dirs:
+            # ── honour identity cap ──────────────────────────────────
+            if max_identities is not None and len(label_map) >= max_identities:
+                break
+
             images = [
                 p for p in identity_dir.iterdir()
                 if p.suffix.lower() in _SUPPORTED_EXTENSIONS
@@ -265,8 +268,13 @@ class TrainFaceDataset(Dataset):
                 skipped.append(identity_dir.name)
                 continue
 
+            # ── honour per-identity image cap ────────────────────────
+            images = sorted(images)
+            if max_images is not None:
+                images = images[:max_images]
+
             label_map[identity_dir.name] = len(label_map)
-            for img_path in sorted(images):
+            for img_path in images:
                 samples.append((img_path, label_map[identity_dir.name]))
 
         if skipped:
