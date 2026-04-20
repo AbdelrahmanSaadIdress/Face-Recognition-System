@@ -84,6 +84,20 @@ class ExperimentTracker:
             notes=self._cfg.wandb.notes,
             # finish_previous=True,
         )
+        # 1. High-frequency step-level metric
+        self._run.define_metric("global_step")
+        self._run.define_metric("train/step_loss", step_metric="global_step")
+
+        # 2. Epoch-level metrics — be explicit, avoid the wildcard clash
+        self._run.define_metric("epoch")
+        self._run.define_metric("train/loss",    step_metric="epoch")
+        self._run.define_metric("train/acc",     step_metric="epoch")
+        self._run.define_metric("train/nn_acc",  step_metric="epoch")
+        self._run.define_metric("train/lr",      step_metric="epoch")
+        self._run.define_metric("val/loss",      step_metric="epoch")
+        self._run.define_metric("val/acc",       step_metric="epoch")
+        self._run.define_metric("val/nn_acc",    step_metric="epoch")
+        self._run.define_metric("epoch_time_s",  step_metric="epoch")
         logger.info("W&B run started: %s", run_name)
 
     def finish_run(self) -> None:

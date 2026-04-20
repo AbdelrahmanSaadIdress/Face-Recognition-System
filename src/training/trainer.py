@@ -122,18 +122,21 @@ class Trainer:
 
             epoch_time = time.time() - epoch_start
 
-            metrics: dict = {
-                "train/loss":     train_loss,
-                f"train/{acc_key}": train_acc,
-                "train/lr":       current_lr,
-                "epoch":          epoch,
-                "epoch_time_s":   epoch_time,
+            last_global_step = (epoch + 1) * len(train_loader) - 1
+
+            metrics = {
+                "train/loss":         train_loss,
+                f"train/{acc_key}":   train_acc,
+                "train/lr":           current_lr,
+                "epoch":              epoch,
+                "epoch_time_s":       epoch_time,
             }
             if val_loss is not None:
                 metrics["val/loss"]       = val_loss
                 metrics[f"val/{acc_key}"] = val_acc
 
-            self.tracker.log_metrics(metrics, step=epoch)
+            # Use global step → always monotonically increasing
+            self.tracker.log_metrics(metrics, step=last_global_step)
 
             logger.info(
                 "Epoch %d/%d | train_loss=%.4f | train_%s=%.4f | "
@@ -228,7 +231,7 @@ class Trainer:
             if (batch_idx + 1) % self.cfg.wandb.log_freq == 0:
                 step = epoch * n_batches + batch_idx
                 self.tracker.log_metrics(
-                    {"train/step_loss": loss.item()}, step=step
+                    {"train/step_loss": loss.item()}, step=global_step
                 )
 
         return total_loss / max(n_batches, 1), total_acc / max(n_batches, 1)
