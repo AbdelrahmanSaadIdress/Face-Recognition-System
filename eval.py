@@ -5,7 +5,7 @@ import logging
 import torch
 
 
-from src.config import Config
+from src.config import Config, load_config
 from src.data.lfw_dataset import LFWPairsDataset
 from src.tracking import ExperimentTracker
 from src.evaluation.evaluator import LFWEvaluator
@@ -88,7 +88,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # ── Build config ────────────────────────────────────────────────────
-cfg = Config.from_yaml(args.config)
+cfg = load_config(args.config)
 
 if args.threshold is not None:
     cfg.evaluation.recognition_threshold = args.threshold
