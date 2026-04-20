@@ -173,9 +173,11 @@ class LFWPairsDataset(Dataset):
         """Number of different-identity (negative) pairs."""
         return int((self._pairs[self._COL_LABEL] == 0).sum())
 
+    # def get_labels(self) -> np.ndarray:
+    #     """Return all pair labels as a (N,) int32 numpy array."""
+    #     return self._pairs[self._COL_LABEL].to_numpy(dtype=np.int32)
     def get_labels(self) -> np.ndarray:
-        """Return all pair labels as a (N,) int32 numpy array."""
-        return self._pairs[self._COL_LABEL].to_numpy(dtype=np.int32)
+        return (self._pairs[self._COL_LABEL] == "similar").to_numpy(dtype=np.int32)
 
     def __repr__(self) -> str:
         return (

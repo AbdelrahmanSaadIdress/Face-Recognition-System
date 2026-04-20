@@ -114,7 +114,10 @@ model = build_face_model(cfg)
 device = torch.device(args.device) if args.device else None
 
 # ── Tracker ─────────────────────────────────────────────────────────
-tracker = ExperimentTracker(cfg, disabled=args.no_tracking)
+if args.no_tracking:
+    cfg.wandb.enabled = False
+
+tracker = ExperimentTracker(cfg) 
 
 # ── Evaluate ────────────────────────────────────────────────────────
 evaluator = LFWEvaluator(dataset, cfg, tracker, device=device)
