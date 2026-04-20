@@ -8,14 +8,6 @@ Modules
 - SphereFaceLoss     — multiplicative angular margin (CVPR 2017)
 - TripletLoss        — FaceNet-style with hard / semi-hard / random mining
 
-Design notes
-------------
-- All losses expect L2-normalised embeddings (backbone guarantees this).
-- SoftmaxLoss re-normalises its weight matrix so it behaves as a cosine
-    classifier — consistent with ArcFace / SphereFace.
-- SphereFaceLoss uses a tighter clamp before acos() to avoid NaN gradients.
-- TripletLoss._random_loss falls back to hard mining when no valid negatives
-    exist for an anchor.
 """
 
 from __future__ import annotations
@@ -136,9 +128,10 @@ class ArcFaceLoss(nn.Module):
             F.normalize(self.weight,  p=2, dim=1),
         ).clamp(-1.0 + _EPS, 1.0 - _EPS)           # (B, C)
 
+        sine = torch.sqrt((1.0 - cosine.pow(2)).clamp(min=_EPS))
+
         # cos(θ + m) via angle-addition formula
-        sine = torch.sqrt(1.0 - cosine.pow(2))
-        phi  = cosine * self.cos_m - sine * self.sin_m
+        phi = cosine * self.cos_m - sine * self.sin_m
 
         if self.easy_margin:
             # Only apply margin when θ < π/2  (cosine > 0)
@@ -173,7 +166,8 @@ class SphereFaceLoss(nn.Module):
     Args:
         embedding_dim: Input feature dimension.
         num_classes:   Number of identity classes.
-        margin:        Multiplicative angular margin m (default 4).
+        margin:        Multiplicative angular margin m (default 4, must be a
+                       positive integer).
         scale:         Feature-scale factor (default 64).
     """
 
@@ -185,6 +179,15 @@ class SphereFaceLoss(nn.Module):
         scale: float = 64.0,
     ) -> None:
         super().__init__()
+
+        # FIX-4: validate margin type and range at construction time.
+        # Passing a float (e.g. 2.5) produced silently wrong Chebyshev
+        # results in the original code.
+        if not isinstance(margin, int) or margin < 1:
+            raise ValueError(
+                f"SphereFaceLoss margin must be a positive integer, got {margin!r}"
+            )
+
         self.margin = margin
         self.scale  = scale
         self.weight = nn.Parameter(torch.empty(num_classes, embedding_dim))
@@ -199,6 +202,30 @@ class SphereFaceLoss(nn.Module):
         self._lambda_min: float  = 5.0
 
     # ------------------------------------------------------------------
+    # Checkpoint support for lambda-annealing state  (FIX-3)
+    # ------------------------------------------------------------------
+
+    def state_dict(self, *args, **kwargs) -> dict:
+        """
+        Extend the standard state_dict with _iter so that lambda-annealing
+        resumes from the correct position after a checkpoint restore.
+
+        Without this, _iter resets to 0 on resume, lambda jumps back to
+        ~1000, and the loss temporarily spikes as the model re-learns to
+        rely on SphereFace rather than plain softmax.
+        """
+        sd = super().state_dict(*args, **kwargs)
+        sd["_iter"] = self._iter
+        return sd
+
+    def load_state_dict(self, state_dict: dict, strict: bool = True) -> None:
+        """Restore _iter alongside the learnable parameters."""
+        # Pop _iter before passing to the parent so it does not complain
+        # about an unexpected key when strict=True.
+        self._iter = int(state_dict.pop("_iter", 0))
+        super().load_state_dict(state_dict, strict=strict)
+
+    # ------------------------------------------------------------------
     # Chebyshev recursion: cos(m·θ) without explicit acos / cos
     # ------------------------------------------------------------------
 
@@ -209,7 +236,7 @@ class SphereFaceLoss(nn.Module):
         More numerically stable than computing acos → multiply → cos.
 
         Args:
-            cos_theta: Tensor of cosine values.
+            cos_theta: Tensor of cosine values, any shape.
 
         Returns:
             Tensor of cos(m·θ) values, same shape.
@@ -232,13 +259,24 @@ class SphereFaceLoss(nn.Module):
         e_norm = F.normalize(embeddings,    p=2, dim=1)
         cosine = F.linear(e_norm, w_norm).clamp(-1.0 + _EPS, 1.0 - _EPS)  # (B, C)
 
-        cos_mt = self._cos_m_theta(cosine)
+        # FIX-2: Compute the piecewise k-correction only for the target-class
+        # angle (shape B) rather than the full (B, C) cosine matrix.
+        #
+        # The piecewise formula  phi = (-1)^k * cos(m*θ) - 2k  is derived
+        # to make cos(m*θ) monotonically decreasing on [0, π].  It is only
+        # mathematically meaningful for the ground-truth class logit; applying
+        # it to all classes distorted non-target logits and could silently
+        # produce NaN in non-target slots when cosine_safe hit an edge value.
+        B = embeddings.size(0)
+        target_cosine = cosine[torch.arange(B, device=cosine.device), labels]  # (B,)
 
-        # Piecewise monotonic correction: sign · (-1)^k − 2k
-        # FIX: use tighter clamp before acos to avoid NaN / inf gradients
-        cosine_safe = cosine.clamp(-1.0 + _ACOS_EPS, 1.0 - _ACOS_EPS)
-        k   = (self.margin * cosine_safe.acos() / math.pi).floor().detach()
-        phi = ((-1.0) ** k) * cos_mt - 2.0 * k
+        target_cos_mt = self._cos_m_theta(target_cosine)
+
+        target_cosine_safe = target_cosine.clamp(
+            -1.0 + _ACOS_EPS, 1.0 - _ACOS_EPS
+        )
+        k   = (self.margin * target_cosine_safe.acos() / math.pi).floor().detach()
+        phi = ((-1.0) ** k) * target_cos_mt - 2.0 * k          # (B,)
 
         # λ-annealing: gradually shift from plain softmax → SphereFace
         lam = max(
@@ -248,11 +286,11 @@ class SphereFaceLoss(nn.Module):
         )
         self._iter += 1
 
-        # Blend: target logit = [m·cos(θ) + plain·cos(θ)] / (1 + λ)
-        one_hot = torch.zeros_like(cosine)
-        one_hot.scatter_(1, labels.view(-1, 1), 1.0)
-        logits = (
-            one_hot * (phi - cosine) / (1.0 + lam) + cosine
+        # Blend target logit: [lam * cos(θ) + phi] / (1 + lam)
+        # Non-target logits remain plain cosine, scaled.
+        logits = cosine.clone() * self.scale
+        logits[torch.arange(B, device=cosine.device), labels] = (
+            (lam * target_cosine + phi) / (1.0 + lam)
         ) * self.scale
 
         return self.criterion(logits, labels)
@@ -283,8 +321,8 @@ class TripletLoss(nn.Module):
     Args:
         margin:     Margin α (default 0.3).
         mining:     Mining strategy (default 'semi-hard').
-        batch_hard: Unused — kept for config compatibility; hard variant
-                    always picks the hardest pair within the chosen strategy.
+        batch_hard: Unused — kept for config compatibility.  Passing
+                    batch_hard=False logs a warning because it has no effect.
     """
 
     def __init__(
@@ -297,6 +335,14 @@ class TripletLoss(nn.Module):
         self.margin     = margin
         self.mining     = mining
         self.batch_hard = batch_hard
+
+        # FIX-5: warn explicitly when batch_hard=False is passed so callers
+        # are not silently surprised that the flag has no effect.
+        if not batch_hard:
+            logger.warning(
+                "TripletLoss: batch_hard=False is not implemented and has no "
+                "effect.  Hard mining is always used within the chosen strategy."
+            )
 
     def forward(
         self,
@@ -415,6 +461,8 @@ class TripletLoss(nn.Module):
         ).min(dim=1).values                                      # (B,)
 
         loss = F.relu(d_ap - d_an + self.margin)
+        # Average only over anchors that had a semi-hard negative — anchors
+        # without one contributed nothing to d_an under the semi-hard logic.
         return loss[valid].mean()
 
     def _random_loss(
@@ -431,7 +479,7 @@ class TripletLoss(nn.Module):
         """
         pos_mask, neg_mask = self._masks(labels)
 
-        # FIX: detect anchors with no valid negative and fall back
+        # Detect anchors with no valid negative and fall back
         has_neg = neg_mask.any(dim=1)   # (B,) bool
         if not has_neg.any():
             logger.debug("TripletLoss: no valid negatives in batch — using hard mining")
