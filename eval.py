@@ -96,12 +96,15 @@ if args.batch_size is not None:
     cfg.evaluation.batch_size = args.batch_size
 
 # ── Build dataset ───────────────────────────────────────────────────
-dataset_kwargs = {"root": args.lfw_dir}
+if args.lfw_dir:
+    cfg.data.lfw_faces_dir = args.lfw_dir          # override faces directory
 if args.pairs_file:
-    dataset_kwargs["pairs_file"] = args.pairs_file
+    cfg.data.lfw_pairs_csv = args.pairs_file        # override pairs CSV path
 
-dataset = LFWPairsDataset(**dataset_kwargs)
-
+dataset = LFWPairsDataset(
+    data_cfg=cfg.data,
+    preproc_cfg=cfg.preprocessing,
+)
 # ── Build model ─────────────────────────────────────────────────────
 from src.models import build_face_model  # noqa: E402
 
