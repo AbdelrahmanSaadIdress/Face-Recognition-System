@@ -166,7 +166,7 @@ class FaceModel(nn.Module):
                 "Attach a loss head or call without labels for inference."
             )
 
-        if return_logits:``
+        if return_logits:
             if isinstance(self.loss_head, _CLASSIFICATION_LOSSES):
                 # ArcFace / SphereFace / Softmax → (loss, logits)
                 return self.loss_head.forward_with_logits(embeddings, labels)
@@ -232,7 +232,7 @@ class FaceModel(nn.Module):
 # ---------------------------------------------------------------------------
 
 
-def build_face_model(cfg: Config, num_classes: int) -> FaceModel:
+def build_face_model(cfg: Config, num_classes: int=None) -> FaceModel:
     """
     Construct a FaceModel from a loaded Config object.
 
