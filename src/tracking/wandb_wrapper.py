@@ -82,7 +82,7 @@ class ExperimentTracker:
             config=run_config,
             tags=self._cfg.wandb.tags,
             notes=self._cfg.wandb.notes,
-            finish_previous=True,
+            # finish_previous=True,
         )
         logger.info("W&B run started: %s", run_name)
 
