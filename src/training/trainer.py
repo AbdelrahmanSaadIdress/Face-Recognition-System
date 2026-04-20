@@ -24,6 +24,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 
 from src.config import Config
+from src.models.losses import TripletLoss
 from src.tracking import ExperimentTracker
 
 logger = logging.getLogger(__name__)
@@ -60,22 +61,28 @@ class Trainer:
 
         self.model.to(self.device)
 
-        # AMP — only meaningful on CUDA
         self._use_amp: bool = cfg.training.amp and self.device.type == "cuda"
         self._scaler: GradScaler = GradScaler(enabled=self._use_amp)
 
         self._checkpoint_dir = Path(cfg.training.checkpoint_dir)
         self._checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
-        # Best validation loss seen so far (used for "best model" checkpoint)
         self._best_val_loss: float = float("inf")
-        self._start_epoch: int = 0   # updated when resuming
+        self._start_epoch: int = 0
+
+        # Detect once whether this is a triplet experiment so we pick the
+        # right accuracy metric throughout the whole run.
+        self._is_triplet: bool = isinstance(
+            getattr(self.model, "loss_head", None), TripletLoss
+        )
 
         logger.info(
-            "Trainer ready | device=%s | amp=%s | checkpoint_dir=%s",
+            "Trainer ready | device=%s | amp=%s | checkpoint_dir=%s | "
+            "acc_metric=%s",
             self.device,
             self._use_amp,
             self._checkpoint_dir,
+            "nn_acc" if self._is_triplet else "acc",
         )
 
     # ------------------------------------------------------------------
@@ -90,12 +97,6 @@ class Trainer:
         """
         Run the full training loop for cfg.training.epochs epochs.
 
-        Args:
-            train_loader:   DataLoader yielding (images, labels) batches.
-            val_loader:     Optional validation DataLoader.  When provided,
-                            validation loss is computed each epoch and the
-                            best checkpoint is saved.
-
         Returns:
             Best validation loss observed (or final train loss if no val).
         """
@@ -106,61 +107,55 @@ class Trainer:
             self._start_epoch,
         )
 
-        final_loss = float("inf")
+        acc_key = "nn_acc" if self._is_triplet else "acc"
 
         for epoch in range(self._start_epoch, total_epochs):
             epoch_start = time.time()
 
-            train_loss = self._train_epoch(train_loader, epoch)
-            val_loss   = self._val_epoch(val_loader, epoch) if val_loader else None
+            train_loss, train_acc = self._train_epoch(train_loader, epoch)
+            val_result            = self._val_epoch(val_loader, epoch) if val_loader else None
+            val_loss              = val_result[0] if val_result is not None else None
+            val_acc               = val_result[1] if val_result is not None else None
 
             current_lr = self.scheduler.get_last_lr()[0]
             self.scheduler.step()
 
             epoch_time = time.time() - epoch_start
 
-            # --- Logging ---
             metrics: dict = {
-                "train/loss": train_loss,
-                "train/lr":   current_lr,
-                "epoch":      epoch,
-                "epoch_time_s": epoch_time,
+                "train/loss":     train_loss,
+                f"train/{acc_key}": train_acc,
+                "train/lr":       current_lr,
+                "epoch":          epoch,
+                "epoch_time_s":   epoch_time,
             }
             if val_loss is not None:
-                metrics["val/loss"] = val_loss
+                metrics["val/loss"]       = val_loss
+                metrics[f"val/{acc_key}"] = val_acc
 
             self.tracker.log_metrics(metrics, step=epoch)
 
             logger.info(
-                "Epoch %d/%d | train_loss=%.4f | val_loss=%s | lr=%.6f | %.1fs",
-                epoch + 1,
-                total_epochs,
+                "Epoch %d/%d | train_loss=%.4f | train_%s=%.4f | "
+                "val_loss=%s | val_%s=%s | lr=%.6f | %.1fs",
+                epoch + 1, total_epochs,
                 train_loss,
-                f"{val_loss:.4f}" if val_loss is not None else "—",
+                acc_key, train_acc,
+                f"{val_loss:.4f}"  if val_loss is not None else "—",
+                acc_key,
+                f"{val_acc:.4f}"   if val_acc  is not None else "—",
                 current_lr,
                 epoch_time,
             )
 
-            # --- Checkpointing ---
             monitor = val_loss if val_loss is not None else train_loss
             self._maybe_save_checkpoint(epoch, monitor)
-
-            final_loss = monitor
 
         logger.info("Training complete. Best val loss: %.4f", self._best_val_loss)
         return self._best_val_loss
 
     def load_checkpoint(self, path: str | Path, strict: bool = True) -> int:
-        """
-        Restore model + optimizer + scheduler state from a checkpoint.
-
-        Args:
-            path:   Path to the .pt checkpoint file.
-            strict: Passed to model.load_state_dict.
-
-        Returns:
-            The epoch stored in the checkpoint (use as start_epoch).
-        """
+        """Restore model + optimizer + scheduler from a checkpoint."""
         ckpt = torch.load(path, map_location=self.device)
 
         self.model.load_state_dict(ckpt["model_state"], strict=strict)
@@ -173,9 +168,7 @@ class Trainer:
 
         logger.info(
             "Resumed from checkpoint %s | epoch=%d | best_val_loss=%.4f",
-            path,
-            epoch,
-            self._best_val_loss,
+            path, epoch, self._best_val_loss,
         )
         return epoch
 
@@ -183,15 +176,18 @@ class Trainer:
     # Internal: train / val epoch
     # ------------------------------------------------------------------
 
-    def _train_epoch(self, loader: DataLoader, epoch: int) -> float:
+    def _train_epoch(
+        self, loader: DataLoader, epoch: int
+    ) -> tuple[float, float]:
         """
         Run one full training epoch.
 
         Returns:
-            Mean loss over all batches.
+            (mean_loss, mean_acc_or_nn_acc) over all batches.
         """
         self.model.train()
         total_loss = 0.0
+        total_acc  = 0.0
         n_batches  = len(loader)
 
         for batch_idx, (images, labels) in enumerate(loader):
@@ -201,11 +197,12 @@ class Trainer:
             self.optimizer.zero_grad(set_to_none=True)
 
             with autocast(enabled=self._use_amp):
-                loss: torch.Tensor = self.model(images, labels)
+                loss, acc_signal = self.model(
+                    images, labels, return_logits=True
+                )
 
             self._scaler.scale(loss).backward()
 
-            # Gradient clipping (unscale first so clip operates on true grads)
             if self.cfg.training.gradient_clip > 0.0:
                 self._scaler.unscale_(self.optimizer)
                 nn.utils.clip_grad_norm_(
@@ -218,25 +215,37 @@ class Trainer:
 
             total_loss += loss.item()
 
-            # Per-step logging at configured frequency
+            # acc_signal is a logit tensor for classification losses and a
+            # plain float for triplet — normalise to a scalar here.
+            if isinstance(acc_signal, torch.Tensor):
+                total_acc += (
+                    acc_signal.argmax(dim=1) == labels
+                ).float().mean().item()
+            else:
+                total_acc += acc_signal   # already a float from forward_with_nn_acc
+
+            # Per-step logging
             if (batch_idx + 1) % self.cfg.wandb.log_freq == 0:
                 step = epoch * n_batches + batch_idx
                 self.tracker.log_metrics(
                     {"train/step_loss": loss.item()}, step=step
                 )
 
-        return total_loss / max(n_batches, 1)
+        return total_loss / max(n_batches, 1), total_acc / max(n_batches, 1)
 
     @torch.no_grad()
-    def _val_epoch(self, loader: DataLoader, epoch: int) -> float:
+    def _val_epoch(
+        self, loader: DataLoader, epoch: int
+    ) -> tuple[float, float]:
         """
         Run one full validation epoch (no gradients).
 
         Returns:
-            Mean loss over all validation batches.
+            (mean_loss, mean_acc_or_nn_acc) over all validation batches.
         """
         self.model.eval()
         total_loss = 0.0
+        total_acc  = 0.0
         n_batches  = len(loader)
 
         for images, labels in loader:
@@ -244,44 +253,42 @@ class Trainer:
             labels = labels.to(self.device, non_blocking=True)
 
             with autocast(enabled=self._use_amp):
-                loss: torch.Tensor = self.model(images, labels)
+                loss, acc_signal = self.model(
+                    images, labels, return_logits=True
+                )
 
             total_loss += loss.item()
 
-        return total_loss / max(n_batches, 1)
+            if isinstance(acc_signal, torch.Tensor):
+                total_acc += (
+                    acc_signal.argmax(dim=1) == labels
+                ).float().mean().item()
+            else:
+                total_acc += acc_signal
+
+        return total_loss / max(n_batches, 1), total_acc / max(n_batches, 1)
 
     # ------------------------------------------------------------------
     # Internal: checkpointing
     # ------------------------------------------------------------------
 
     def _maybe_save_checkpoint(self, epoch: int, monitor: float) -> None:
-        """
-        Save checkpoint logic — periodic + best-model.
-
-        Saves:
-        - Every `save_every_n_epochs` epochs: <model_name>_epoch_<N>.pt
-        - Whenever monitor improves: <model_name>_best.pt
-        """
         model_name = getattr(self.model, "model_name", "face_model")
 
-        # Periodic checkpoint
         if (epoch + 1) % self.cfg.training.save_every_n_epochs == 0:
             path = self._checkpoint_dir / f"{model_name}_epoch_{epoch+1:04d}.pt"
             self._save(path, epoch, monitor)
 
-        # Best-model checkpoint
         if monitor < self._best_val_loss:
             self._best_val_loss = monitor
             path = self._checkpoint_dir / f"{model_name}_best.pt"
             self._save(path, epoch, monitor)
             logger.info("New best checkpoint: loss=%.4f → %s", monitor, path.name)
 
-        # Always keep latest
         path = self._checkpoint_dir / f"{model_name}_latest.pt"
         self._save(path, epoch, monitor)
 
     def _save(self, path: Path, epoch: int, monitor: float) -> None:
-        """Serialize model, optimizer, scheduler, and metadata to disk."""
         torch.save(
             {
                 "epoch":           epoch,

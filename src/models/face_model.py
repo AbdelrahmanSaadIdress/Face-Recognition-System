@@ -29,6 +29,10 @@ Example
     loss = model(images, labels)
     loss.backward()
 
+    # Training step with accuracy signal
+    loss, logits = model(images, labels, return_logits=True)   # classification losses
+    loss, nn_acc = model(images, labels, return_logits=True)   # triplet loss
+
     # Inference / evaluation
     model.eval()
     with torch.no_grad():
@@ -38,7 +42,7 @@ Example
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import Optional, Union
 
 import torch
 import torch.nn as nn
@@ -61,6 +65,9 @@ _LOSS_REGISTRY: dict[str, type] = {
     "sphereface":  SphereFaceLoss,
     "triplet":     TripletLoss,
 }
+
+# Loss heads that expose classification logits
+_CLASSIFICATION_LOSSES = (SoftmaxLoss, ArcFaceLoss, SphereFaceLoss)
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +105,6 @@ class FaceModel(nn.Module):
         self.loss_head  = loss_head
         self.model_name = model_name
 
-        # Expose embedding dimension for external callers (FAISS builder, etc.)
         self.embedding_dim: int = backbone.embedding_dim
 
         logger.info(
@@ -114,39 +120,60 @@ class FaceModel(nn.Module):
 
     def forward(
         self,
-        images: torch.Tensor,            # (B, 3, H, W) float32
-        labels: Optional[torch.Tensor] = None,  # (B,) int64 — optional
-    ) -> torch.Tensor:
+        images: torch.Tensor,                    # (B, 3, H, W) float32
+        labels: Optional[torch.Tensor] = None,   # (B,) int64 — optional
+        return_logits: bool = False,             # request logits / nn_acc
+    ) -> Union[
+        torch.Tensor,                            # inference: embeddings
+        torch.Tensor,                            # training, return_logits=False: loss
+        tuple[torch.Tensor, torch.Tensor],       # classification + return_logits=True: (loss, logits)
+        tuple[torch.Tensor, float],              # triplet + return_logits=True: (loss, nn_acc)
+    ]:
         """
         Dual-mode forward pass.
 
-        Training mode  → loss (scalar tensor).
-        Inference mode → embeddings (B, embedding_dim).
+        Training mode (labels provided):
+            return_logits=False → loss scalar
+            return_logits=True  → (loss, logits)  for classification losses
+                                   (loss, nn_acc) for TripletLoss
+                                   nn_acc is a plain Python float in [0, 1]
+
+        Inference mode (labels=None) → (B, embedding_dim) embeddings.
+        return_logits is ignored in inference mode.
 
         Args:
-            images: Batch of preprocessed face crops.
-            labels: Ground-truth identity indices.
-                    Must be provided during training; omit for inference.
+            images:        Batch of preprocessed face crops.
+            labels:        Ground-truth identity indices.  Required for training.
+            return_logits: When True in training mode, also return the logits
+                           (classification heads) or NN accuracy (triplet).
 
         Returns:
-            Scalar loss tensor  (when labels is not None).
-            (B, D) embedding tensor  (when labels is None).
+            See type signature above.
 
         Raises:
             RuntimeError: If called in training mode without a loss head.
         """
-        embeddings = self.backbone(images)          # (B, D) L2-normalised
+        embeddings = self.backbone(images)  # (B, D) L2-normalised
 
         if labels is None:
-            # Inference path — return embeddings directly
+            # Inference path — embeddings only, ignore return_logits
             return embeddings
 
-        # Training path — compute loss
+        # Training path
         if self.loss_head is None:
             raise RuntimeError(
                 "FaceModel.forward called with labels but loss_head is None. "
                 "Attach a loss head or call without labels for inference."
             )
+
+        if return_logits:``
+            if isinstance(self.loss_head, _CLASSIFICATION_LOSSES):
+                # ArcFace / SphereFace / Softmax → (loss, logits)
+                return self.loss_head.forward_with_logits(embeddings, labels)
+            elif isinstance(self.loss_head, TripletLoss):
+                # Triplet → (loss, nn_accuracy float)
+                return self.loss_head.forward_with_nn_acc(embeddings, labels)
+
         return self.loss_head(embeddings, labels)
 
     # ------------------------------------------------------------------
@@ -158,13 +185,6 @@ class FaceModel(nn.Module):
         """
         Extract L2-normalised embeddings (inference only, no grad).
 
-        Equivalent to:
-            model.eval()
-            with torch.no_grad():
-                emb = model(images)
-
-        But more explicit and safe — always bypasses the loss head.
-
         Args:
             images: (B, 3, H, W) float32 preprocessed crops.
 
@@ -174,7 +194,7 @@ class FaceModel(nn.Module):
         training_state = self.training
         self.eval()
         embeddings = self.backbone(images)
-        self.train(training_state)   # restore original state
+        self.train(training_state)
         return embeddings
 
     # ------------------------------------------------------------------
@@ -182,23 +202,10 @@ class FaceModel(nn.Module):
     # ------------------------------------------------------------------
 
     def backbone_state_dict(self) -> dict:
-        """
-        Return backbone-only state dict.
-
-        Use this when saving a checkpoint for FAISS / deployment —
-        the loss head weights (class centres) are not needed at inference.
-        """
+        """Return backbone-only state dict for FAISS / deployment."""
         return self.backbone.state_dict()
 
     def load_backbone_weights(self, state_dict: dict, strict: bool = True) -> None:
-        """
-        Load backbone weights from a state dict.
-
-        Args:
-            state_dict: Output of a previous `backbone_state_dict()` call.
-            strict:     Passed to `load_state_dict` — set False when loading
-                        a checkpoint with a different head size.
-        """
         missing, unexpected = self.backbone.load_state_dict(
             state_dict, strict=strict
         )
@@ -229,25 +236,14 @@ def build_face_model(cfg: Config, num_classes: int) -> FaceModel:
     """
     Construct a FaceModel from a loaded Config object.
 
-    Reads:
-        cfg.model  → backbone name, embedding_dim, pretrained, dropout
-        cfg.model.name  → which loss head to build
-        cfg.loss.*      → loss-specific hyperparameters
-
     Args:
         cfg:         Fully loaded Config (from load_config()).
         num_classes: Number of identity classes in the training set.
                      Ignored for TripletLoss (no classification head).
+                     Pass None to build an embedding-only model for FAISS.
 
     Returns:
         FaceModel ready for training.
-
-    Raises:
-        ValueError: If cfg.model.name is not a registered loss type.
-
-    Example:
-        cfg   = load_config()
-        model = build_face_model(cfg, num_classes=10_572)
     """
     if cfg.model.name not in _LOSS_REGISTRY:
         raise ValueError(
@@ -255,7 +251,6 @@ def build_face_model(cfg: Config, num_classes: int) -> FaceModel:
             f"Valid options: {sorted(_LOSS_REGISTRY)}"
         )
 
-    # 1. Backbone
     backbone = build_backbone(
         name          = cfg.model.backbone,
         pretrained    = cfg.model.pretrained_backbone,
@@ -263,12 +258,7 @@ def build_face_model(cfg: Config, num_classes: int) -> FaceModel:
         embedding_dim = cfg.model.embedding_dim,
     )
 
-    # if the num_classes was none then it's for evaluation or faiss building, in which case we don't need to build the loss head
-    if num_classes is None:
-        loss_head = None
-    else:
-        # 2. Loss head
-        loss_head = _build_loss_head(cfg, num_classes)
+    loss_head = None if num_classes is None else _build_loss_head(cfg, num_classes)
 
     return FaceModel(
         backbone   = backbone,
@@ -278,16 +268,6 @@ def build_face_model(cfg: Config, num_classes: int) -> FaceModel:
 
 
 def _build_loss_head(cfg: Config, num_classes: int) -> nn.Module:
-    """
-    Instantiate the correct loss head from config.
-
-    Args:
-        cfg:         Full config.
-        num_classes: Number of training identities.
-
-    Returns:
-        Configured loss head nn.Module.
-    """
     name = cfg.model.name
     dim  = cfg.model.embedding_dim
 
@@ -323,5 +303,4 @@ def _build_loss_head(cfg: Config, num_classes: int) -> nn.Module:
             batch_hard = cfg.loss.triplet.batch_hard,
         )
 
-    # Should never reach here due to registry check in build_face_model
     raise ValueError(f"Unhandled loss type: {name!r}")

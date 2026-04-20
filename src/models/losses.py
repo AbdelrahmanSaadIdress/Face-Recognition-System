@@ -59,17 +59,29 @@ class SoftmaxLoss(nn.Module):
         nn.init.xavier_normal_(self.weight)
         self.criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
 
+    def _compute_logits(self, embeddings: torch.Tensor) -> torch.Tensor:
+        """Shared logit computation used by both forward paths."""
+        return F.linear(
+            F.normalize(embeddings, p=2, dim=1),
+            F.normalize(self.weight,  p=2, dim=1),
+        ) * self.scale  # (B, C)
+
     def forward(
         self,
         embeddings: torch.Tensor,  # (B, D) — L2-normalised
         labels: torch.Tensor,      # (B,)   — integer class indices
     ) -> torch.Tensor:
-        # Both sides normalised → inner product = cosine similarity
-        logits = F.linear(
-            F.normalize(embeddings, p=2, dim=1),
-            F.normalize(self.weight,  p=2, dim=1),
-        ) * self.scale                              # (B, C)
+        logits = self._compute_logits(embeddings)
         return self.criterion(logits, labels)
+
+    def forward_with_logits(
+        self,
+        embeddings: torch.Tensor,
+        labels: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Returns (loss, logits) — logits are pre-softmax scaled cosines."""
+        logits = self._compute_logits(embeddings)
+        return self.criterion(logits, labels), logits.detach()
 
 
 # ---------------------------------------------------------------------------
@@ -117,35 +129,46 @@ class ArcFaceLoss(nn.Module):
         nn.init.xavier_uniform_(self.weight)
         self.criterion = nn.CrossEntropyLoss()
 
+    def _compute_logits(
+        self,
+        embeddings: torch.Tensor,
+        labels: torch.Tensor,
+    ) -> torch.Tensor:
+        """Shared logit computation used by both forward paths."""
+        cosine = F.linear(
+            F.normalize(embeddings, p=2, dim=1),
+            F.normalize(self.weight,  p=2, dim=1),
+        ).clamp(-1.0 + _EPS, 1.0 - _EPS)  # (B, C)
+
+        sine = torch.sqrt((1.0 - cosine.pow(2)).clamp(min=_EPS))
+        phi  = cosine * self.cos_m - sine * self.sin_m
+
+        if self.easy_margin:
+            phi = torch.where(cosine > 0.0, phi, cosine)
+        else:
+            phi = torch.where(cosine > self.th, phi, cosine - self.mm)
+
+        one_hot = torch.zeros_like(cosine)
+        one_hot.scatter_(1, labels.view(-1, 1), 1.0)
+
+        return (one_hot * phi + (1.0 - one_hot) * cosine) * self.scale  # (B, C)
+
     def forward(
         self,
         embeddings: torch.Tensor,  # (B, D) — L2-normalised
         labels: torch.Tensor,      # (B,)
     ) -> torch.Tensor:
-        # Cosine similarity between embeddings and class centres
-        cosine = F.linear(
-            F.normalize(embeddings, p=2, dim=1),
-            F.normalize(self.weight,  p=2, dim=1),
-        ).clamp(-1.0 + _EPS, 1.0 - _EPS)           # (B, C)
-
-        sine = torch.sqrt((1.0 - cosine.pow(2)).clamp(min=_EPS))
-
-        # cos(θ + m) via angle-addition formula
-        phi = cosine * self.cos_m - sine * self.sin_m
-
-        if self.easy_margin:
-            # Only apply margin when θ < π/2  (cosine > 0)
-            phi = torch.where(cosine > 0.0, phi, cosine)
-        else:
-            # Standard fallback for θ + m > π
-            phi = torch.where(cosine > self.th, phi, cosine - self.mm)
-
-        # Replace target-class cosine with phi; leave others unchanged
-        one_hot = torch.zeros_like(cosine)
-        one_hot.scatter_(1, labels.view(-1, 1), 1.0)
-
-        logits = (one_hot * phi + (1.0 - one_hot) * cosine) * self.scale
+        logits = self._compute_logits(embeddings, labels)
         return self.criterion(logits, labels)
+
+    def forward_with_logits(
+        self,
+        embeddings: torch.Tensor,
+        labels: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Returns (loss, logits) — logits have the angular margin applied."""
+        logits = self._compute_logits(embeddings, labels)
+        return self.criterion(logits, labels), logits.detach()
 
 
 # ---------------------------------------------------------------------------
@@ -180,9 +203,6 @@ class SphereFaceLoss(nn.Module):
     ) -> None:
         super().__init__()
 
-        # FIX-4: validate margin type and range at construction time.
-        # Passing a float (e.g. 2.5) produced silently wrong Chebyshev
-        # results in the original code.
         if not isinstance(margin, int) or margin < 1:
             raise ValueError(
                 f"SphereFaceLoss margin must be a positive integer, got {margin!r}"
@@ -194,53 +214,22 @@ class SphereFaceLoss(nn.Module):
         nn.init.xavier_uniform_(self.weight)
         self.criterion = nn.CrossEntropyLoss()
 
-        # λ-annealing state — decays with each forward pass
-        self._iter: int         = 0
+        self._iter: int          = 0
         self._base_lambda: float = 1000.0
         self._gamma: float       = 0.12
         self._power: float       = 1.0
         self._lambda_min: float  = 5.0
 
-    # ------------------------------------------------------------------
-    # Checkpoint support for lambda-annealing state  (FIX-3)
-    # ------------------------------------------------------------------
-
     def state_dict(self, *args, **kwargs) -> dict:
-        """
-        Extend the standard state_dict with _iter so that lambda-annealing
-        resumes from the correct position after a checkpoint restore.
-
-        Without this, _iter resets to 0 on resume, lambda jumps back to
-        ~1000, and the loss temporarily spikes as the model re-learns to
-        rely on SphereFace rather than plain softmax.
-        """
         sd = super().state_dict(*args, **kwargs)
         sd["_iter"] = self._iter
         return sd
 
     def load_state_dict(self, state_dict: dict, strict: bool = True) -> None:
-        """Restore _iter alongside the learnable parameters."""
-        # Pop _iter before passing to the parent so it does not complain
-        # about an unexpected key when strict=True.
         self._iter = int(state_dict.pop("_iter", 0))
         super().load_state_dict(state_dict, strict=strict)
 
-    # ------------------------------------------------------------------
-    # Chebyshev recursion: cos(m·θ) without explicit acos / cos
-    # ------------------------------------------------------------------
-
     def _cos_m_theta(self, cos_theta: torch.Tensor) -> torch.Tensor:
-        """
-        Compute cos(m·θ) via Chebyshev recursion T_m(x) = 2x·T_{m-1}(x) − T_{m-2}(x).
-
-        More numerically stable than computing acos → multiply → cos.
-
-        Args:
-            cos_theta: Tensor of cosine values, any shape.
-
-        Returns:
-            Tensor of cos(m·θ) values, same shape.
-        """
         cos_mt   = cos_theta.clone()
         cos_prev = torch.ones_like(cos_theta)
         for _ in range(1, self.margin):
@@ -250,35 +239,24 @@ class SphereFaceLoss(nn.Module):
             )
         return cos_mt
 
-    def forward(
+    def _compute_logits(
         self,
-        embeddings: torch.Tensor,  # (B, D) — L2-normalised
-        labels: torch.Tensor,      # (B,)
+        embeddings: torch.Tensor,
+        labels: torch.Tensor,
     ) -> torch.Tensor:
-        w_norm = F.normalize(self.weight,   p=2, dim=1)
-        e_norm = F.normalize(embeddings,    p=2, dim=1)
+        """Shared logit computation used by both forward paths."""
+        w_norm = F.normalize(self.weight,  p=2, dim=1)
+        e_norm = F.normalize(embeddings,   p=2, dim=1)
         cosine = F.linear(e_norm, w_norm).clamp(-1.0 + _EPS, 1.0 - _EPS)  # (B, C)
 
-        # FIX-2: Compute the piecewise k-correction only for the target-class
-        # angle (shape B) rather than the full (B, C) cosine matrix.
-        #
-        # The piecewise formula  phi = (-1)^k * cos(m*θ) - 2k  is derived
-        # to make cos(m*θ) monotonically decreasing on [0, π].  It is only
-        # mathematically meaningful for the ground-truth class logit; applying
-        # it to all classes distorted non-target logits and could silently
-        # produce NaN in non-target slots when cosine_safe hit an edge value.
         B = embeddings.size(0)
-        target_cosine = cosine[torch.arange(B, device=cosine.device), labels]  # (B,)
-
+        target_cosine = cosine[torch.arange(B, device=cosine.device), labels]
         target_cos_mt = self._cos_m_theta(target_cosine)
 
-        target_cosine_safe = target_cosine.clamp(
-            -1.0 + _ACOS_EPS, 1.0 - _ACOS_EPS
-        )
+        target_cosine_safe = target_cosine.clamp(-1.0 + _ACOS_EPS, 1.0 - _ACOS_EPS)
         k   = (self.margin * target_cosine_safe.acos() / math.pi).floor().detach()
-        phi = ((-1.0) ** k) * target_cos_mt - 2.0 * k          # (B,)
+        phi = ((-1.0) ** k) * target_cos_mt - 2.0 * k
 
-        # λ-annealing: gradually shift from plain softmax → SphereFace
         lam = max(
             self._lambda_min,
             self._base_lambda
@@ -286,14 +264,29 @@ class SphereFaceLoss(nn.Module):
         )
         self._iter += 1
 
-        # Blend target logit: [lam * cos(θ) + phi] / (1 + lam)
-        # Non-target logits remain plain cosine, scaled.
         logits = cosine.clone() * self.scale
         logits[torch.arange(B, device=cosine.device), labels] = (
             (lam * target_cosine + phi) / (1.0 + lam)
         ) * self.scale
 
+        return logits  # (B, C)
+
+    def forward(
+        self,
+        embeddings: torch.Tensor,
+        labels: torch.Tensor,
+    ) -> torch.Tensor:
+        logits = self._compute_logits(embeddings, labels)
         return self.criterion(logits, labels)
+
+    def forward_with_logits(
+        self,
+        embeddings: torch.Tensor,
+        labels: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Returns (loss, logits) — logits have lambda-annealed margin applied."""
+        logits = self._compute_logits(embeddings, labels)
+        return self.criterion(logits, labels), logits.detach()
 
 
 # ---------------------------------------------------------------------------
@@ -336,8 +329,6 @@ class TripletLoss(nn.Module):
         self.mining     = mining
         self.batch_hard = batch_hard
 
-        # FIX-5: warn explicitly when batch_hard=False is passed so callers
-        # are not silently surprised that the flag has no effect.
         if not batch_hard:
             logger.warning(
                 "TripletLoss: batch_hard=False is not implemented and has no "
@@ -358,6 +349,37 @@ class TripletLoss(nn.Module):
         else:
             return self._random_loss(dist_mat, labels)
 
+    def forward_with_nn_acc(
+        self,
+        embeddings: torch.Tensor,
+        labels: torch.Tensor,
+    ) -> tuple[torch.Tensor, float]:
+        """
+        Returns (loss, nn_accuracy).
+
+        nn_accuracy: fraction of samples whose nearest neighbour (excluding
+        self) shares the same identity label.  Computed from the same
+        distance matrix used for mining — zero extra cost.
+        """
+        dist_mat = self._pairwise_cosine_dist(embeddings)  # (B, B)
+
+        # Loss (reuse existing mining logic via the shared dist_mat)
+        if self.mining == "hard":
+            loss = self._hard_loss(dist_mat, labels)
+        elif self.mining == "semi-hard":
+            loss = self._semi_hard_loss(dist_mat, labels)
+        else:
+            loss = self._random_loss(dist_mat, labels)
+
+        # NN accuracy — mask the diagonal so a sample can't be its own neighbour
+        B   = dist_mat.size(0)
+        eye = torch.eye(B, dtype=torch.bool, device=dist_mat.device)
+        dist_no_self       = dist_mat.masked_fill(eye, float("inf"))
+        nn_labels          = labels[dist_no_self.argmin(dim=1)]   # (B,)
+        nn_acc             = (nn_labels == labels).float().mean().item()
+
+        return loss, nn_acc
+
     # ------------------------------------------------------------------
     # Distance matrix
     # ------------------------------------------------------------------
@@ -371,7 +393,7 @@ class TripletLoss(nn.Module):
         """
         e = F.normalize(embeddings, p=2, dim=1)
         sim = torch.mm(e, e.t()).clamp(-1.0 + _EPS, 1.0 - _EPS)
-        return 1.0 - sim                           # (B, B), in [0, 2]
+        return 1.0 - sim  # (B, B), in [0, 2]
 
     # ------------------------------------------------------------------
     # Positive / negative masks
@@ -388,7 +410,7 @@ class TripletLoss(nn.Module):
             pos_mask: (B, B) — True for same-class, off-diagonal pairs.
             neg_mask: (B, B) — True for different-class pairs.
         """
-        same = labels.unsqueeze(0) == labels.unsqueeze(1)   # (B, B)
+        same = labels.unsqueeze(0) == labels.unsqueeze(1)  # (B, B)
         eye  = torch.eye(
             labels.size(0), dtype=torch.bool, device=labels.device
         )
@@ -403,66 +425,32 @@ class TripletLoss(nn.Module):
         dist_mat: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Batch-hard mining: hardest positive + hardest negative per anchor.
-
-        d_ap = max distance among same-class pairs  (hardest positive).
-        d_an = min distance among diff-class pairs  (hardest negative).
-        """
         pos_mask, neg_mask = self._masks(labels)
-
-        # Hardest positive: largest intra-class distance
-        d_ap = (dist_mat * pos_mask.float()).max(dim=1).values  # (B,)
-
-        # Hardest negative: smallest inter-class distance
-        # Mask out non-negatives by adding a large constant
-        d_an = (
-            dist_mat + (~neg_mask).float() * 1e6
-        ).min(dim=1).values                                      # (B,)
-
-        loss = F.relu(d_ap - d_an + self.margin)
-        return loss.mean()
+        d_ap = (dist_mat * pos_mask.float()).max(dim=1).values
+        d_an = (dist_mat + (~neg_mask).float() * 1e6).min(dim=1).values
+        return F.relu(d_ap - d_an + self.margin).mean()
 
     def _semi_hard_loss(
         self,
         dist_mat: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Semi-hard mining (FaceNet):
-
-        For each anchor, pick negatives where:
-            d(a,p) < d(a,n) < d(a,p) + margin
-
-        Falls back to hard mining when no semi-hard negatives exist in
-        the current batch.
-        """
         pos_mask, neg_mask = self._masks(labels)
+        d_ap = (dist_mat * pos_mask.float()).max(dim=1).values
 
-        # Hardest positive distance per anchor
-        d_ap = (dist_mat * pos_mask.float()).max(dim=1).values  # (B,)
-
-        # Semi-hard negative region
         semi_mask = (
             neg_mask
             & (dist_mat > d_ap.unsqueeze(1))
             & (dist_mat < d_ap.unsqueeze(1) + self.margin)
         )
 
-        # Fall back to hard mining if no semi-hard negatives found
         if not semi_mask.any():
             logger.debug("TripletLoss: no semi-hard negatives found — using hard mining")
             return self._hard_loss(dist_mat, labels)
 
-        valid = semi_mask.any(dim=1)   # anchors that have a semi-hard neg
-
-        d_an = (
-            dist_mat + (~semi_mask).float() * 1e6
-        ).min(dim=1).values                                      # (B,)
-
-        loss = F.relu(d_ap - d_an + self.margin)
-        # Average only over anchors that had a semi-hard negative — anchors
-        # without one contributed nothing to d_an under the semi-hard logic.
+        valid = semi_mask.any(dim=1)
+        d_an  = (dist_mat + (~semi_mask).float() * 1e6).min(dim=1).values
+        loss  = F.relu(d_ap - d_an + self.margin)
         return loss[valid].mean()
 
     def _random_loss(
@@ -470,23 +458,14 @@ class TripletLoss(nn.Module):
         dist_mat: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Random mining: one random valid positive + one random valid negative
-        per anchor.
-
-        Falls back to hard mining for any anchor that has no valid negative
-        (e.g. entire batch is one identity — pathological but defensive).
-        """
         pos_mask, neg_mask = self._masks(labels)
 
-        # Detect anchors with no valid negative and fall back
-        has_neg = neg_mask.any(dim=1)   # (B,) bool
+        has_neg = neg_mask.any(dim=1)
         if not has_neg.any():
             logger.debug("TripletLoss: no valid negatives in batch — using hard mining")
             return self._hard_loss(dist_mat, labels)
 
         def _rand_idx(mask: torch.Tensor) -> torch.Tensor:
-            """Sample one random True index per row; rows with no True get 0."""
             noise = torch.rand_like(dist_mat) * mask.float()
             return noise.argmax(dim=1)
 
@@ -499,5 +478,4 @@ class TripletLoss(nn.Module):
         d_an = dist_mat[idx, n_idx]
 
         loss = F.relu(d_ap - d_an + self.margin)
-        # Only average over anchors that actually had a valid negative
         return loss[has_neg].mean()

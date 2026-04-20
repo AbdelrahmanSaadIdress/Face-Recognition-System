@@ -465,22 +465,3 @@ def _cosine_similarity(emb1: np.ndarray, emb2: np.ndarray) -> np.ndarray:
     return (e1 * e2).sum(axis=1).astype(np.float32)
 
 
-if __name__ == "__main__":
-
-    from src.data import LFWPairsDataset
-    from src.models import build_face_model
-    from src.config import Config, load_config
-    from src.tracking import ExperimentTracker
-
-    config_path = "configs/base.yaml"
-    cfg = load_config(config_path)
-    tracker = ExperimentTracker(cfg)  # No-op tracker for testing
-
-    dataset = LFWPairsDataset(cfg.data.lfw_path, cfg.preprocessing)
-    model = build_face_model(cfg, None)
-
-
-    evaluator = LFWEvaluator(dataset, cfg, tracker)
-    result = evaluator.evaluate(model, model_name="arcface_resnet50_test")
-
-    print(result)
