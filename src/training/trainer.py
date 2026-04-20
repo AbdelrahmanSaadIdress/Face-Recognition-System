@@ -231,7 +231,7 @@ class Trainer:
             if (batch_idx + 1) % self.cfg.wandb.log_freq == 0:
                 step = epoch * n_batches + batch_idx
                 self.tracker.log_metrics(
-                    {"train/step_loss": loss.item()}, step=global_step
+                    {"train/step_loss": loss.item()}, step=step
                 )
 
         return total_loss / max(n_batches, 1), total_acc / max(n_batches, 1)
