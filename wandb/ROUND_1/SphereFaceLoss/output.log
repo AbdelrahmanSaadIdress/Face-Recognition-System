@@ -1,0 +1,214 @@
+2026-04-21 19:39:11
+17:39:10 | INFO     | src.tracking.wandb_wrapper | W&B run started: Experiment
+2026-04-21 19:39:11
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:65: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+2026-04-21 19:39:11
+  self._scaler: GradScaler = GradScaler(enabled=self._use_amp)
+2026-04-21 19:39:11
+17:39:11 | INFO     | src.training.trainer | Trainer ready | device=cuda | amp=True | checkpoint_dir=checkpoints | acc_metric=acc
+2026-04-21 19:39:11
+17:39:11 | INFO     | train | ============================================================
+2026-04-21 19:39:11
+17:39:11 | INFO     | train | Starting run: Experiment
+2026-04-21 19:39:11
+17:39:11 | INFO     | train |   model      : sphereface
+2026-04-21 19:39:11
+17:39:11 | INFO     | train |   backbone   : resnet50
+2026-04-21 19:39:11
+17:39:11 | INFO     | train |   embedding  : 512
+2026-04-21 19:39:11
+17:39:11 | INFO     | train |   epochs     : 100
+2026-04-21 19:39:11
+17:39:11 | INFO     | train |   batch_size : 256
+2026-04-21 19:39:11
+17:39:11 | INFO     | train |   lr         : 0.1
+2026-04-21 19:39:11
+17:39:11 | INFO     | train |   scheduler  : cosine
+2026-04-21 19:39:11
+17:39:11 | INFO     | train |   amp        : True
+2026-04-21 19:39:11
+17:39:11 | INFO     | train | ============================================================
+2026-04-21 19:39:11
+17:39:11 | INFO     | src.training.trainer | Starting training: epochs=100, start_epoch=0
+2026-04-21 19:39:14
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:202: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+2026-04-21 19:39:14
+  with autocast(enabled=self._use_amp):
+2026-04-21 19:43:03
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:258: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+2026-04-21 19:43:03
+  with autocast(enabled=self._use_amp):
+2026-04-21 19:44:26
+17:44:26 | INFO     | src.training.trainer | Epoch 1/100 | train_loss=12.8398 | train_acc=0.0001 | val_loss=15.1205 | val_acc=0.0000 | lr=0.001000 | 314.8s
+2026-04-21 19:44:26
+17:44:26 | INFO     | src.training.trainer | New best checkpoint: loss=15.1205 → sphereface_resnet50_best.pt
+2026-04-21 19:46:31
+17:46:31 | INFO     | src.training.trainer | Epoch 2/100 | train_loss=13.4606 | train_acc=0.0150 | val_loss=12.8052 | val_acc=0.0488 | lr=0.020800 | 125.2s
+2026-04-21 19:46:32
+17:46:32 | INFO     | src.training.trainer | New best checkpoint: loss=12.8052 → sphereface_resnet50_best.pt
+2026-04-21 19:48:32
+17:48:32 | INFO     | src.training.trainer | Epoch 3/100 | train_loss=11.5905 | train_acc=0.1225 | val_loss=12.5842 | val_acc=0.1135 | lr=0.040600 | 119.2s
+2026-04-21 19:48:32
+17:48:32 | INFO     | src.training.trainer | New best checkpoint: loss=12.5842 → sphereface_resnet50_best.pt
+2026-04-21 19:50:33
+17:50:33 | INFO     | src.training.trainer | Epoch 4/100 | train_loss=10.8493 | train_acc=0.1656 | val_loss=13.7416 | val_acc=0.1027 | lr=0.060400 | 120.8s
+2026-04-21 19:52:44
+17:52:44 | INFO     | src.training.trainer | Epoch 5/100 | train_loss=12.1982 | train_acc=0.1342 | val_loss=15.8548 | val_acc=0.0737 | lr=0.080200 | 130.3s
+2026-04-21 19:54:42
+17:54:42 | INFO     | src.training.trainer | Epoch 6/100 | train_loss=12.8554 | train_acc=0.1266 | val_loss=16.9816 | val_acc=0.0671 | lr=0.100000 | 118.2s
+2026-04-21 19:56:42
+17:56:42 | INFO     | src.training.trainer | Epoch 7/100 | train_loss=11.0460 | train_acc=0.1887 | val_loss=14.7192 | val_acc=0.1053 | lr=0.099973 | 119.4s
+2026-04-21 19:58:37
+17:58:37 | INFO     | src.training.trainer | Epoch 8/100 | train_loss=9.6582 | train_acc=0.2480 | val_loss=12.7493 | val_acc=0.1686 | lr=0.099891 | 114.3s
+2026-04-21 20:00:35
+18:00:35 | INFO     | src.training.trainer | Epoch 9/100 | train_loss=8.5481 | train_acc=0.3017 | val_loss=12.4345 | val_acc=0.1943 | lr=0.099754 | 117.3s
+2026-04-21 20:00:35
+18:00:35 | INFO     | src.training.trainer | New best checkpoint: loss=12.4345 → sphereface_resnet50_best.pt
+2026-04-21 20:02:32
+18:02:32 | INFO     | src.training.trainer | Epoch 10/100 | train_loss=7.7902 | train_acc=0.3447 | val_loss=11.4329 | val_acc=0.2455 | lr=0.099563 | 116.6s
+2026-04-21 20:02:33
+18:02:33 | INFO     | src.training.trainer | New best checkpoint: loss=11.4329 → sphereface_resnet50_best.pt
+2026-04-21 20:04:28
+18:04:28 | INFO     | src.training.trainer | Epoch 11/100 | train_loss=7.1597 | train_acc=0.3792 | val_loss=11.3841 | val_acc=0.2633 | lr=0.099318 | 115.2s
+2026-04-21 20:04:29
+18:04:29 | INFO     | src.training.trainer | New best checkpoint: loss=11.3841 → sphereface_resnet50_best.pt
+2026-04-21 20:06:24
+18:06:24 | INFO     | src.training.trainer | Epoch 12/100 | train_loss=6.6327 | train_acc=0.4173 | val_loss=10.7654 | val_acc=0.3034 | lr=0.099019 | 114.9s
+2026-04-21 20:06:25
+18:06:25 | INFO     | src.training.trainer | New best checkpoint: loss=10.7654 → sphereface_resnet50_best.pt
+2026-04-21 20:08:20
+18:08:20 | INFO     | src.training.trainer | Epoch 13/100 | train_loss=6.2408 | train_acc=0.4390 | val_loss=9.7381 | val_acc=0.3483 | lr=0.098666 | 114.9s
+2026-04-21 20:08:20
+18:08:20 | INFO     | src.training.trainer | New best checkpoint: loss=9.7381 → sphereface_resnet50_best.pt
+2026-04-21 20:10:14
+18:10:14 | INFO     | src.training.trainer | Epoch 14/100 | train_loss=5.9138 | train_acc=0.4674 | val_loss=11.1317 | val_acc=0.3150 | lr=0.098260 | 113.4s
+2026-04-21 20:12:08
+18:12:08 | INFO     | src.training.trainer | Epoch 15/100 | train_loss=5.6419 | train_acc=0.4870 | val_loss=10.1572 | val_acc=0.3596 | lr=0.097802 | 113.4s
+2026-04-21 20:14:01
+18:14:01 | INFO     | src.training.trainer | Epoch 16/100 | train_loss=5.4298 | train_acc=0.5038 | val_loss=11.3536 | val_acc=0.3220 | lr=0.097291 | 112.9s
+2026-04-21 20:15:59
+18:15:59 | INFO     | src.training.trainer | Epoch 17/100 | train_loss=5.2604 | train_acc=0.5184 | val_loss=10.8385 | val_acc=0.3541 | lr=0.096728 | 117.1s
+2026-04-21 20:17:56
+18:17:56 | INFO     | src.training.trainer | Epoch 18/100 | train_loss=5.0736 | train_acc=0.5346 | val_loss=10.0498 | val_acc=0.3929 | lr=0.096115 | 116.4s
+2026-04-21 20:19:50
+18:19:50 | INFO     | src.training.trainer | Epoch 19/100 | train_loss=4.9643 | train_acc=0.5458 | val_loss=10.6211 | val_acc=0.3773 | lr=0.095450 | 113.7s
+2026-04-21 20:21:43
+18:21:43 | INFO     | src.training.trainer | Epoch 20/100 | train_loss=4.8395 | train_acc=0.5578 | val_loss=10.6679 | val_acc=0.3742 | lr=0.094737 | 112.5s
+2026-04-21 20:23:40
+18:23:40 | INFO     | src.training.trainer | Epoch 21/100 | train_loss=4.6796 | train_acc=0.5689 | val_loss=11.8184 | val_acc=0.3478 | lr=0.093974 | 116.3s
+2026-04-21 20:25:34
+18:25:34 | INFO     | src.training.trainer | Epoch 22/100 | train_loss=4.5227 | train_acc=0.5822 | val_loss=9.6552 | val_acc=0.4318 | lr=0.093163 | 113.7s
+2026-04-21 20:25:34
+18:25:34 | INFO     | src.training.trainer | New best checkpoint: loss=9.6552 → sphereface_resnet50_best.pt
+2026-04-21 20:27:29
+18:27:29 | INFO     | src.training.trainer | Epoch 23/100 | train_loss=4.4995 | train_acc=0.5885 | val_loss=10.2333 | val_acc=0.4205 | lr=0.092305 | 114.3s
+2026-04-21 20:29:21
+18:29:21 | INFO     | src.training.trainer | Epoch 24/100 | train_loss=4.3716 | train_acc=0.5989 | val_loss=10.0962 | val_acc=0.4251 | lr=0.091401 | 111.9s
+2026-04-21 20:31:15
+18:31:15 | INFO     | src.training.trainer | Epoch 25/100 | train_loss=4.2791 | train_acc=0.6060 | val_loss=10.9617 | val_acc=0.4069 | lr=0.090451 | 113.3s
+2026-04-21 20:33:08
+18:33:08 | INFO     | src.training.trainer | Epoch 26/100 | train_loss=4.2186 | train_acc=0.6142 | val_loss=10.6041 | val_acc=0.4295 | lr=0.089457 | 112.9s
+2026-04-21 20:35:03
+18:35:03 | INFO     | src.training.trainer | Epoch 27/100 | train_loss=4.1132 | train_acc=0.6226 | val_loss=10.2817 | val_acc=0.4379 | lr=0.088420 | 114.1s
+2026-04-21 20:36:57
+18:36:57 | INFO     | src.training.trainer | Epoch 28/100 | train_loss=4.0252 | train_acc=0.6283 | val_loss=9.9401 | val_acc=0.4542 | lr=0.087341 | 113.4s
+2026-04-21 20:38:51
+18:38:51 | INFO     | src.training.trainer | Epoch 29/100 | train_loss=3.9173 | train_acc=0.6385 | val_loss=10.4481 | val_acc=0.4475 | lr=0.086221 | 113.6s
+2026-04-21 20:40:45
+18:40:45 | INFO     | src.training.trainer | Epoch 30/100 | train_loss=3.8629 | train_acc=0.6464 | val_loss=10.3602 | val_acc=0.4445 | lr=0.085062 | 113.6s
+2026-04-21 20:42:38
+18:42:38 | INFO     | src.training.trainer | Epoch 31/100 | train_loss=3.8075 | train_acc=0.6502 | val_loss=9.6902 | val_acc=0.4767 | lr=0.083864 | 112.4s
+2026-04-21 20:44:31
+18:44:31 | INFO     | src.training.trainer | Epoch 32/100 | train_loss=3.7447 | train_acc=0.6561 | val_loss=9.9594 | val_acc=0.4736 | lr=0.082629 | 112.1s
+2026-04-21 20:46:23
+18:46:23 | INFO     | src.training.trainer | Epoch 33/100 | train_loss=3.6273 | train_acc=0.6664 | val_loss=10.6719 | val_acc=0.4465 | lr=0.081359 | 112.2s
+2026-04-21 20:48:22
+18:48:22 | INFO     | src.training.trainer | Epoch 34/100 | train_loss=3.5442 | train_acc=0.6720 | val_loss=9.4769 | val_acc=0.4986 | lr=0.080054 | 118.6s
+2026-04-21 20:48:23
+18:48:23 | INFO     | src.training.trainer | New best checkpoint: loss=9.4769 → sphereface_resnet50_best.pt
+2026-04-21 20:50:50
+18:50:50 | INFO     | src.training.trainer | Epoch 35/100 | train_loss=3.4554 | train_acc=0.6803 | val_loss=10.5476 | val_acc=0.4689 | lr=0.078717 | 146.6s
+2026-04-21 20:58:45
+18:58:45 | INFO     | src.training.trainer | Epoch 36/100 | train_loss=3.3876 | train_acc=0.6859 | val_loss=10.2856 | val_acc=0.4760 | lr=0.077348 | 474.8s
+2026-04-21 21:00:39
+19:00:39 | INFO     | src.training.trainer | Epoch 37/100 | train_loss=3.2830 | train_acc=0.6945 | val_loss=9.9616 | val_acc=0.4946 | lr=0.075949 | 113.3s
+2026-04-21 21:02:32
+19:02:32 | INFO     | src.training.trainer | Epoch 38/100 | train_loss=3.2209 | train_acc=0.7005 | val_loss=9.9858 | val_acc=0.5022 | lr=0.074521 | 113.0s
+2026-04-21 21:04:26
+19:04:26 | INFO     | src.training.trainer | Epoch 39/100 | train_loss=3.1276 | train_acc=0.7064 | val_loss=9.9597 | val_acc=0.5031 | lr=0.073067 | 112.8s
+2026-04-21 21:06:18
+19:06:18 | INFO     | src.training.trainer | Epoch 40/100 | train_loss=3.0156 | train_acc=0.7179 | val_loss=9.8210 | val_acc=0.5193 | lr=0.071588 | 112.3s
+2026-04-21 21:08:12
+19:08:12 | INFO     | src.training.trainer | Epoch 41/100 | train_loss=2.9331 | train_acc=0.7218 | val_loss=9.4386 | val_acc=0.5331 | lr=0.070085 | 112.9s
+2026-04-21 21:08:12
+19:08:12 | INFO     | src.training.trainer | New best checkpoint: loss=9.4386 → sphereface_resnet50_best.pt
+2026-04-21 21:10:05
+19:10:05 | INFO     | src.training.trainer | Epoch 42/100 | train_loss=2.8388 | train_acc=0.7309 | val_loss=9.1024 | val_acc=0.5461 | lr=0.068560 | 112.1s
+2026-04-21 21:10:05
+19:10:05 | INFO     | src.training.trainer | New best checkpoint: loss=9.1024 → sphereface_resnet50_best.pt
+2026-04-21 21:11:59
+19:11:59 | INFO     | src.training.trainer | Epoch 43/100 | train_loss=2.7611 | train_acc=0.7381 | val_loss=9.5767 | val_acc=0.5293 | lr=0.067015 | 113.5s
+2026-04-21 21:13:52
+19:13:52 | INFO     | src.training.trainer | Epoch 44/100 | train_loss=2.6705 | train_acc=0.7435 | val_loss=9.5338 | val_acc=0.5389 | lr=0.065451 | 112.9s
+2026-04-21 21:15:45
+19:15:45 | INFO     | src.training.trainer | Epoch 45/100 | train_loss=2.6140 | train_acc=0.7492 | val_loss=9.6111 | val_acc=0.5389 | lr=0.063871 | 112.4s
+2026-04-21 21:17:38
+19:17:38 | INFO     | src.training.trainer | Epoch 46/100 | train_loss=2.5007 | train_acc=0.7586 | val_loss=10.4423 | val_acc=0.5088 | lr=0.062275 | 112.8s
+2026-04-21 21:19:31
+19:19:31 | INFO     | src.training.trainer | Epoch 47/100 | train_loss=2.4312 | train_acc=0.7661 | val_loss=9.0600 | val_acc=0.5653 | lr=0.060665 | 112.2s
+2026-04-21 21:19:31
+19:19:31 | INFO     | src.training.trainer | New best checkpoint: loss=9.0600 → sphereface_resnet50_best.pt
+2026-04-21 21:21:24
+19:21:24 | INFO     | src.training.trainer | Epoch 48/100 | train_loss=2.3138 | train_acc=0.7733 | val_loss=8.9498 | val_acc=0.5685 | lr=0.059044 | 112.6s
+2026-04-21 21:21:25
+19:21:25 | INFO     | src.training.trainer | New best checkpoint: loss=8.9498 → sphereface_resnet50_best.pt
+2026-04-21 21:23:19
+19:23:19 | INFO     | src.training.trainer | Epoch 49/100 | train_loss=2.2381 | train_acc=0.7797 | val_loss=8.9784 | val_acc=0.5738 | lr=0.057414 | 113.2s
+2026-04-21 21:25:12
+19:25:12 | INFO     | src.training.trainer | Epoch 50/100 | train_loss=2.1644 | train_acc=0.7851 | val_loss=9.4549 | val_acc=0.5519 | lr=0.055775 | 112.9s
+2026-04-21 21:27:08
+19:27:08 | INFO     | src.training.trainer | Epoch 51/100 | train_loss=2.0825 | train_acc=0.7934 | val_loss=9.2317 | val_acc=0.5695 | lr=0.054129 | 115.1s
+2026-04-21 21:29:01
+19:29:01 | INFO     | src.training.trainer | Epoch 52/100 | train_loss=2.0022 | train_acc=0.7994 | val_loss=8.5558 | val_acc=0.6008 | lr=0.052480 | 113.1s
+2026-04-21 21:29:02
+19:29:02 | INFO     | src.training.trainer | New best checkpoint: loss=8.5558 → sphereface_resnet50_best.pt
+2026-04-21 21:30:55
+19:30:55 | INFO     | src.training.trainer | Epoch 53/100 | train_loss=1.9250 | train_acc=0.8076 | val_loss=9.1542 | val_acc=0.5834 | lr=0.050827 | 112.5s
+2026-04-21 21:32:47
+19:32:47 | INFO     | src.training.trainer | Epoch 54/100 | train_loss=1.8226 | train_acc=0.8144 | val_loss=8.5939 | val_acc=0.6005 | lr=0.049174 | 111.6s
+2026-04-21 21:34:39
+19:34:39 | INFO     | src.training.trainer | Epoch 55/100 | train_loss=1.7400 | train_acc=0.8238 | val_loss=8.4752 | val_acc=0.6023 | lr=0.047521 | 112.0s
+2026-04-21 21:34:39
+19:34:39 | INFO     | src.training.trainer | New best checkpoint: loss=8.4752 → sphereface_resnet50_best.pt
+2026-04-21 21:36:32
+19:36:32 | INFO     | src.training.trainer | Epoch 56/100 | train_loss=1.6649 | train_acc=0.8285 | val_loss=8.6555 | val_acc=0.6053 | lr=0.045872 | 112.0s
+2026-04-21 21:38:29
+19:38:29 | INFO     | src.training.trainer | Epoch 57/100 | train_loss=1.5742 | train_acc=0.8376 | val_loss=7.9394 | val_acc=0.6296 | lr=0.044226 | 116.4s
+2026-04-21 21:38:29
+19:38:29 | INFO     | src.training.trainer | New best checkpoint: loss=7.9394 → sphereface_resnet50_best.pt
+2026-04-21 21:40:26
+19:40:26 | INFO     | src.training.trainer | Epoch 58/100 | train_loss=1.5182 | train_acc=0.8441 | val_loss=8.5525 | val_acc=0.6137 | lr=0.042587 | 116.2s
+2026-04-21 21:42:19
+19:42:19 | INFO     | src.training.trainer | Epoch 59/100 | train_loss=1.4244 | train_acc=0.8505 | val_loss=8.4276 | val_acc=0.6178 | lr=0.040957 | 113.1s
+2026-04-21 21:44:13
+19:44:13 | INFO     | src.training.trainer | Epoch 60/100 | train_loss=1.3765 | train_acc=0.8580 | val_loss=8.6338 | val_acc=0.6137 | lr=0.039336 | 112.9s
+2026-04-21 21:46:06
+19:46:06 | INFO     | src.training.trainer | Epoch 61/100 | train_loss=1.2825 | train_acc=0.8646 | val_loss=8.2910 | val_acc=0.6275 | lr=0.037726 | 112.5s
+2026-04-21 21:47:59
+19:47:59 | INFO     | src.training.trainer | Epoch 62/100 | train_loss=1.2053 | train_acc=0.8714 | val_loss=8.3804 | val_acc=0.6279 | lr=0.036130 | 112.6s
+2026-04-21 21:49:51
+19:49:51 | INFO     | src.training.trainer | Epoch 63/100 | train_loss=1.1289 | train_acc=0.8781 | val_loss=7.8018 | val_acc=0.6519 | lr=0.034550 | 112.1s
+2026-04-21 21:49:52
+19:49:52 | INFO     | src.training.trainer | New best checkpoint: loss=7.8018 → sphereface_resnet50_best.pt
+2026-04-21 21:51:44
+19:51:44 | INFO     | src.training.trainer | Epoch 64/100 | train_loss=1.0719 | train_acc=0.8835 | val_loss=7.7731 | val_acc=0.6564 | lr=0.032986 | 112.3s
+2026-04-21 21:51:45
+19:51:45 | INFO     | src.training.trainer | New best checkpoint: loss=7.7731 → sphereface_resnet50_best.pt
+2026-04-21 21:53:37
+19:53:37 | INFO     | src.training.trainer | Epoch 65/100 | train_loss=0.9957 | train_acc=0.8901 | val_loss=7.8945 | val_acc=0.6547 | lr=0.031441 | 111.8s
+2026-04-21 21:55:29
+19:55:29 | INFO     | src.training.trainer | Epoch 66/100 | train_loss=0.9315 | train_acc=0.8992 | val_loss=8.0113 | val_acc=0.6553 | lr=0.029916 | 111.4s
+2026-04-21 21:57:21
+19:57:21 | INFO     | src.training.trainer | Epoch 67/100 | train_loss=0.8643 | train_acc=0.9059 | val_loss=7.6491 | val_acc=0.6638 | lr=0.028413 | 112.0s
+2026-04-21 21:57:21
+19:57:21 | INFO     | src.training.trainer | New best checkpoint: loss=7.6491 → sphereface_resnet50_best.pt

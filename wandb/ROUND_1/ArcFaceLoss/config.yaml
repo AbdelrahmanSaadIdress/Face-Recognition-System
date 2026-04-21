@@ -1,0 +1,273 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            17rrn7hoi4222l4y15yrgwrdiuqjy7m3:
+                args:
+                    - --config
+                    - configs/arcface.yaml
+                codePath: train.py
+                codePathLocal: train.py
+                cpu_count: 2
+                cpu_count_logical: 4
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "8656922775552"
+                        used: "7346534670336"
+                email: abdo200saad4@gmail.com
+                executable: /usr/bin/python3
+                git:
+                    commit: 961cb88cff85d5d4caf777c7ac025803bc1f446f
+                    remote: https://github.com/AbdelrahmanSaadIdress/Face-Recognition-System.git
+                gpu: Tesla T4
+                gpu_count: 2
+                gpu_nvidia:
+                    - architecture: Turing
+                      cudaCores: 2560
+                      memoryTotal: "16106127360"
+                      name: Tesla T4
+                      uuid: GPU-a40d6853-ad89-bbc0-9417-baa50cd913c6
+                    - architecture: Turing
+                      cudaCores: 2560
+                      memoryTotal: "16106127360"
+                      name: Tesla T4
+                      uuid: GPU-dc841511-6c0e-793e-eaa0-ca5ef26d2f39
+                host: 38d982ffa157
+                memory:
+                    total: "33662472192"
+                os: Linux-6.6.113+-x86_64-with-glibc2.35
+                program: /kaggle/working/Face-Recognition-System/train.py
+                python: CPython 3.12.12
+                root: /kaggle/working/Face-Recognition-System
+                startedAt: "2026-04-21T03:42:37.796778Z"
+                writerId: 17rrn7hoi4222l4y15yrgwrdiuqjy7m3
+        m:
+            - "1": val/acc
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": epoch
+              "6":
+                - 3
+              "7": []
+            - "1": train/loss
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": train/acc
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": val/loss
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": val/nn_acc
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": epoch_time_s
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": global_step
+              "6":
+                - 3
+              "7": []
+            - "1": train/step_loss
+              "5": 8
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": train/nn_acc
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": train/lr
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+        python_version: 3.12.12
+        t:
+            "1":
+                - 1
+                - 41
+                - 105
+            "2":
+                - 1
+                - 41
+                - 105
+            "3":
+                - 7
+                - 13
+                - 15
+                - 16
+                - 61
+            "4": 3.12.12
+            "5": 0.25.0
+            "8":
+                - 2
+            "12": 0.25.0
+            "13": linux-x86_64
+api:
+    value:
+        cors_origins:
+            - '*'
+        host: 0.0.0.0
+        log_level: info
+        max_upload_size_mb: 10
+        port: 8000
+        workers: 2
+attendance:
+    value:
+        confidence_threshold: 0.7
+        cooldown_seconds: 30
+        database_url: sqlite:///data/processed/attendance.db
+benchmark:
+    value:
+        device: cuda
+        timed_runs: 100
+        warmup_runs: 10
+data:
+    value:
+        augmentation:
+            blur_kernel_size: 5
+            blur_prob: 0.2
+            brightness_jitter: 0.3
+            contrast_jitter: 0.3
+            enabled: true
+            horizontal_flip_prob: 0.5
+            occlusion_max_ratio: 0.3
+            occlusion_prob: 0.2
+        augmented_path: data/augmented
+        image_size: 112
+        lfw_faces_dir: data/raw/Faces
+        lfw_pairs_csv: data/raw/test.csv
+        lfw_path: data/raw/lfw
+        max_identities: 1000
+        max_images_per_identity: 100
+        min_identities: 100
+        min_images_per_identity: 5
+        num_workers: 4
+        pin_memory: true
+        processed_path: data/processed
+        train_path: /kaggle/input/datasets/yakhyokhuja/vggface2-112x112/vggface2_112x112
+evaluation:
+    value:
+        batch_size: 512
+        distance_metric: cosine
+        recognition_threshold: 0.6
+        robustness:
+            blur_sigmas:
+                - 1
+                - 2
+                - 3
+            brightness_deltas:
+                - -0.3
+                - -0.15
+                - 0.15
+                - 0.3
+            occlusion_ratios:
+                - 0.1
+                - 0.2
+                - 0.3
+        threshold_max: 1
+        threshold_min: 0
+        threshold_steps: 1000
+faiss:
+    value:
+        hnsw_m: 32
+        index_dir: data/processed/faiss_indexes
+        index_type: flat_l2
+        nprobe: 32
+        top_k: 5
+loss:
+    value:
+        arcface:
+            easy_margin: true
+            margin: 0.5
+            scale: 64
+        softmax:
+            label_smoothing: 0
+        sphereface:
+            margin: 4
+            scale: 64
+        triplet:
+            batch_hard: true
+            margin: 0.3
+            mining: semi-hard
+model:
+    value:
+        backbone: resnet50
+        dropout: 0
+        embedding_dim: 512
+        name: arcface
+        pretrained_backbone: true
+num_classes:
+    value: 1000
+preprocessing:
+    value:
+        alignment_landmarks: 5
+        detector: mtcnn
+        normalization_mean:
+            - 0.5
+            - 0.5
+            - 0.5
+        normalization_std:
+            - 0.5
+            - 0.5
+            - 0.5
+project:
+    value:
+        name: face_recognition_with_arcface_loss
+        seed: 42
+        version: 1.0.0
+resume:
+    value: null
+training:
+    value:
+        amp: true
+        batch_size: 256
+        checkpoint_dir: checkpoints
+        epochs: 100
+        gradient_clip: 5
+        learning_rate: 0.1
+        lr_gamma: 0.1
+        lr_milestones:
+            - 30
+            - 60
+            - 90
+        lr_scheduler: cosine
+        lr_step_size: 30
+        momentum: 0.9
+        save_every_n_epochs: 10
+        warmup_epochs: 5
+        weight_decay: 0.0005
+val_split:
+    value: 0.3
+wandb:
+    value:
+        enabled: true
+        entity: ""
+        log_freq: 50
+        notes: ""
+        project: face-recognition-benchmark
+        tags: []
