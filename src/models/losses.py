@@ -256,7 +256,7 @@ class SphereFaceLoss(nn.Module):
         target_cosine_safe = target_cosine.clamp(-1.0 + _ACOS_EPS, 1.0 - _ACOS_EPS)
         k   = (self.margin * target_cosine_safe.acos() / math.pi).floor().detach()
         phi = ((-1.0) ** k) * target_cos_mt - 2.0 * k
-
+        phi = phi.to(cosine.dtype)
         lam = max(
             self._lambda_min,
             self._base_lambda
