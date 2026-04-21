@@ -187,7 +187,7 @@ All three models share the same backbone to ensure a fair comparison. Only the l
 
 | Validation Loss                                    | Validation Accuracy                              |
 | -------------------------------------------------- | ------------------------------------------------ |
-| ![Triplet Val Loss](wandb\ROUND_1\TripletLoss\val_loss.png) | ![Triplet Val Acc](wandb\ROUND_1\TripletLoss\val_acc.png) |
+| ![Triplet Val Loss](wandb/ROUND_1/TripletLoss/val_loss.png) | ![Triplet Val Acc](wandb/ROUND_1/TripletLoss/val_acc.png) |
 
 ---
 
@@ -195,7 +195,7 @@ All three models share the same backbone to ensure a fair comparison. Only the l
 
 | Validation Loss                                          | Validation Accuracy                                    |
 | -------------------------------------------------------- | ------------------------------------------------------ |
-| ![SphereFace Val Loss](wandb\ROUND_1\SphereFaceLoss\val_loss.png)| ![SphereFace Val Acc](wandb\ROUND_1\SphereFaceLoss\val_loss.png) |
+| ![SphereFace Val Loss](wandb/ROUND_1/SphereFaceLoss/val_loss.png)| ![SphereFace Val Acc](wandb/ROUND_1/SphereFaceLoss/val_loss.png) |
 
 ---
 
@@ -203,7 +203,7 @@ All three models share the same backbone to ensure a fair comparison. Only the l
 
 | Validation Loss                                    | Validation Accuracy                              |
 | -------------------------------------------------- | ------------------------------------------------ |
-| ![ArcFace Val Loss](wandb\ROUND_1\ArcFaceLoss\val_loss.png) | ![ArcFace Val Acc](wandb\ROUND_1\ArcFaceLoss\val_loss.png) |
+| ![ArcFace Val Loss](wandb/ROUND_1/ArcFaceLoss/val_loss.png) | ![ArcFace Val Acc](wandb/ROUND_1/ArcFaceLoss/val_loss.png) |
 
 ---
 
