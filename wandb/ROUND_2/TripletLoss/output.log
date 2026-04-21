@@ -1,0 +1,127 @@
+19:04:13 | INFO     | src.tracking.wandb_wrapper | W&B run started: Experiment
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:65: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self._scaler: GradScaler = GradScaler(enabled=self._use_amp)
+19:04:14 | INFO     | src.training.trainer | Trainer ready | device=cuda | amp=True | checkpoint_dir=checkpoints | acc_metric=nn_acc
+19:04:14 | INFO     | train | ============================================================
+19:04:14 | INFO     | train | Starting run: Experiment
+19:04:14 | INFO     | train |   model      : triplet
+19:04:14 | INFO     | train |   backbone   : resnet100
+19:04:14 | INFO     | train |   embedding  : 512
+19:04:14 | INFO     | train |   epochs     : 100
+19:04:14 | INFO     | train |   batch_size : 512
+19:04:14 | INFO     | train |   lr         : 0.001
+19:04:14 | INFO     | train |   scheduler  : cosine
+19:04:14 | INFO     | train |   amp        : True
+19:04:14 | INFO     | train | ============================================================
+19:04:14 | INFO     | src.training.trainer | Starting training: epochs=100, start_epoch=0
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:202: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast(enabled=self._use_amp):
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:258: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast(enabled=self._use_amp):
+19:14:11 | INFO     | src.training.trainer | Epoch 1/100 | train_loss=0.2968 | train_nn_acc=0.0096 | val_loss=0.2974 | val_nn_acc=0.0211 | lr=0.000010 | 597.4s
+19:14:11 | INFO     | src.training.trainer | New best checkpoint: loss=0.2974 → triplet_resnet100_best.pt
+19:21:48 | INFO     | src.training.trainer | Epoch 2/100 | train_loss=0.2966 | train_nn_acc=0.0113 | val_loss=0.2967 | val_nn_acc=0.0260 | lr=0.000208 | 456.4s
+19:21:49 | INFO     | src.training.trainer | New best checkpoint: loss=0.2967 → triplet_resnet100_best.pt
+19:29:26 | INFO     | src.training.trainer | Epoch 3/100 | train_loss=0.2960 | train_nn_acc=0.0151 | val_loss=0.2943 | val_nn_acc=0.0339 | lr=0.000406 | 456.2s
+19:29:27 | INFO     | src.training.trainer | New best checkpoint: loss=0.2943 → triplet_resnet100_best.pt
+19:36:58 | INFO     | src.training.trainer | Epoch 4/100 | train_loss=0.2926 | train_nn_acc=0.0213 | val_loss=0.2905 | val_nn_acc=0.0453 | lr=0.000604 | 450.3s
+19:36:58 | INFO     | src.training.trainer | New best checkpoint: loss=0.2905 → triplet_resnet100_best.pt
+19:44:26 | INFO     | src.training.trainer | Epoch 5/100 | train_loss=0.2878 | train_nn_acc=0.0309 | val_loss=0.2865 | val_nn_acc=0.0575 | lr=0.000802 | 447.0s
+19:44:27 | INFO     | src.training.trainer | New best checkpoint: loss=0.2865 → triplet_resnet100_best.pt
+19:51:57 | INFO     | src.training.trainer | Epoch 6/100 | train_loss=0.2831 | train_nn_acc=0.0391 | val_loss=0.2837 | val_nn_acc=0.0718 | lr=0.001000 | 449.6s
+19:51:58 | INFO     | src.training.trainer | New best checkpoint: loss=0.2837 → triplet_resnet100_best.pt
+19:59:32 | INFO     | src.training.trainer | Epoch 7/100 | train_loss=0.2806 | train_nn_acc=0.0482 | val_loss=0.2818 | val_nn_acc=0.0867 | lr=0.001000 | 453.3s
+19:59:33 | INFO     | src.training.trainer | New best checkpoint: loss=0.2818 → triplet_resnet100_best.pt
+20:07:04 | INFO     | src.training.trainer | Epoch 8/100 | train_loss=0.2776 | train_nn_acc=0.0580 | val_loss=0.2809 | val_nn_acc=0.0993 | lr=0.000999 | 450.3s
+20:07:04 | INFO     | src.training.trainer | New best checkpoint: loss=0.2809 → triplet_resnet100_best.pt
+20:14:33 | INFO     | src.training.trainer | Epoch 9/100 | train_loss=0.2756 | train_nn_acc=0.0678 | val_loss=0.2805 | val_nn_acc=0.1128 | lr=0.000998 | 448.2s
+20:14:34 | INFO     | src.training.trainer | New best checkpoint: loss=0.2805 → triplet_resnet100_best.pt
+20:22:09 | INFO     | src.training.trainer | Epoch 10/100 | train_loss=0.2737 | train_nn_acc=0.0761 | val_loss=0.2787 | val_nn_acc=0.1251 | lr=0.000996 | 454.6s
+20:22:10 | INFO     | src.training.trainer | New best checkpoint: loss=0.2787 → triplet_resnet100_best.pt
+20:29:59 | INFO     | src.training.trainer | Epoch 11/100 | train_loss=0.2725 | train_nn_acc=0.0849 | val_loss=0.2788 | val_nn_acc=0.1377 | lr=0.000993 | 467.9s
+20:37:39 | INFO     | src.training.trainer | Epoch 12/100 | train_loss=0.2712 | train_nn_acc=0.0903 | val_loss=0.2771 | val_nn_acc=0.1493 | lr=0.000990 | 459.4s
+20:37:40 | INFO     | src.training.trainer | New best checkpoint: loss=0.2771 → triplet_resnet100_best.pt
+20:45:11 | INFO     | src.training.trainer | Epoch 13/100 | train_loss=0.2696 | train_nn_acc=0.0999 | val_loss=0.2762 | val_nn_acc=0.1597 | lr=0.000987 | 450.5s
+20:45:12 | INFO     | src.training.trainer | New best checkpoint: loss=0.2762 → triplet_resnet100_best.pt
+20:52:46 | INFO     | src.training.trainer | Epoch 14/100 | train_loss=0.2678 | train_nn_acc=0.1072 | val_loss=0.2756 | val_nn_acc=0.1718 | lr=0.000983 | 453.4s
+20:52:47 | INFO     | src.training.trainer | New best checkpoint: loss=0.2756 → triplet_resnet100_best.pt
+21:00:40 | INFO     | src.training.trainer | Epoch 15/100 | train_loss=0.2667 | train_nn_acc=0.1125 | val_loss=0.2745 | val_nn_acc=0.1825 | lr=0.000978 | 472.5s
+21:00:40 | INFO     | src.training.trainer | New best checkpoint: loss=0.2745 → triplet_resnet100_best.pt
+21:08:14 | INFO     | src.training.trainer | Epoch 16/100 | train_loss=0.2649 | train_nn_acc=0.1231 | val_loss=0.2733 | val_nn_acc=0.1921 | lr=0.000973 | 452.9s
+21:08:15 | INFO     | src.training.trainer | New best checkpoint: loss=0.2733 → triplet_resnet100_best.pt
+Traceback (most recent call last):
+  File "/kaggle/working/Face-Recognition-System/train.py", line 418, in <module>
+    main()
+  File "/kaggle/working/Face-Recognition-System/train.py", line 396, in main
+    best_loss = trainer.fit(train_loader, val_loader)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/kaggle/working/Face-Recognition-System/src/training/trainer.py", line 116, in fit
+    val_result            = self._val_epoch(val_loader, epoch) if val_loader else None
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/kaggle/working/Face-Recognition-System/src/training/trainer.py", line 259, in _val_epoch
+    loss, acc_signal = self.model(
+                       ^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/kaggle/working/Face-Recognition-System/src/models/face_model.py", line 156, in forward
+    embeddings = self.backbone(images)  # (B, D) L2-normalised
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/kaggle/working/Face-Recognition-System/src/models/backbone.py", line 115, in forward
+    features = self.backbone(x)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torchvision/models/resnet.py", line 285, in forward
+    return self._forward_impl(x)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torchvision/models/resnet.py", line 275, in _forward_impl
+    x = self.layer3(x)
+        ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/container.py", line 253, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torchvision/models/resnet.py", line 151, in forward
+    out = self.bn2(out)
+          ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/batchnorm.py", line 194, in forward
+    return F.batch_norm(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/functional.py", line 2846, in batch_norm
+    return torch.batch_norm(
+           ^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
