@@ -300,7 +300,11 @@ def main(args: argparse.Namespace) -> None:
 
     # ── Camera / video source ─────────────────────────────────────────────
     source = int(args.source) if args.source.isdigit() else args.source
-    cap    = cv2.VideoCapture(source)
+    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 30)
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open video source: {args.source!r}")
 
@@ -327,7 +331,7 @@ def main(args: argparse.Namespace) -> None:
         fps       = 1.0 / max(now - prev_time, 1e-6)
         prev_time = now
 
-        # ── Detect faces ──────────────────────────────────────────────────
+        # # ── Detect faces ──────────────────────────────────────────────────
         face_crops = detect_and_crop(frame, detector, cfg.data.image_size)
 
         for crop_bgr, box in face_crops:
@@ -362,7 +366,7 @@ def main(args: argparse.Namespace) -> None:
             draw_result(frame, box, label, similarity if known else None, known)
 
         draw_fps(frame, fps)
-        cv2.imshow("Attendance System — press 'q' to quit", frame)
+        cv2.imshow("Attendance System ", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             log.info("User quit.")
