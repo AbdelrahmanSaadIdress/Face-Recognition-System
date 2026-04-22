@@ -455,6 +455,6 @@ stronger theoretical guarantees and wider community validation.
 
 | Model | Link |
 |---|---|
-| Triplet Loss | https://huggingface.co/<your-username>/<triplet-repo> |
-| ArcFace | https://huggingface.co/<your-username>/<arcface-repo> |
-| SphereFace | https://huggingface.co/<your-username>/<sphereface-repo> |
+| Triplet Loss | https://huggingface.co/AbdoSaad24/TripletLossModels |
+| ArcFace | https://huggingface.co/AbdoSaad24/BestArcFaceModel |
+| SphereFace | https://huggingface.co/AbdoSaad24/BestSphereFaceModel |
