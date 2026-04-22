@@ -1,3 +1,6 @@
 data/raw/identities
 checkpoints/
 README.md
+chroma_db
+test_images
+eval_results.json
