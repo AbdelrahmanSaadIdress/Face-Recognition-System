@@ -447,3 +447,14 @@ literature), on this constrained 1000-identity setup SphereFace's
 multiplicative margin appears to produce slightly more generalizable
 embeddings. ArcFace is retained as the deployment fallback given its
 stronger theoretical guarantees and wider community validation.
+
+<!-- normally val loss ≥ train loss. This suggests either your val set overlaps with train identities, or the PK sampler is only applied to train and val batches are constructed differently. -->
+---
+
+## 🤗 Trained Models (Hugging Face)
+
+| Model | Link |
+|---|---|
+| Triplet Loss | https://huggingface.co/<your-username>/<triplet-repo> |
+| ArcFace | https://huggingface.co/<your-username>/<arcface-repo> |
+| SphereFace | https://huggingface.co/<your-username>/<sphereface-repo> |
