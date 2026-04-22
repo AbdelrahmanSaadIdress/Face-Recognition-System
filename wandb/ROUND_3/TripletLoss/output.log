@@ -1,0 +1,217 @@
+06:58:29 | INFO     | src.tracking.wandb_wrapper | W&B run started: Experiment
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:56: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self._scaler: GradScaler = GradScaler(enabled=self._use_amp)
+06:58:29 | INFO     | src.training.trainer | Trainer ready | device=cuda | amp=True | checkpoint_dir=checkpoints | acc_metric=nn_acc_global
+06:58:29 | INFO     | train | ============================================================
+06:58:29 | INFO     | train | Starting run: Experiment
+06:58:29 | INFO     | train |   model      : triplet
+06:58:29 | INFO     | train |   backbone   : resnet50
+06:58:29 | INFO     | train |   embedding  : 512
+06:58:29 | INFO     | train |   epochs     : 100
+06:58:29 | INFO     | train |   batch_size : 128
+06:58:29 | INFO     | train |   lr         : 0.001
+06:58:29 | INFO     | train |   scheduler  : cosine
+06:58:29 | INFO     | train |   amp        : True
+06:58:29 | INFO     | train | ============================================================
+06:58:29 | INFO     | src.training.trainer | Starting training: epochs=100, start_epoch=0
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:156: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast(enabled=self._use_amp):
+/kaggle/working/Face-Recognition-System/src/training/trainer.py:202: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast(enabled=self._use_amp):
+07:03:28 | INFO     | src.training.trainer | Epoch 1/100 | train_loss=0.7841 | train_nn_acc=0.2656 | val_loss=0.2281 | val_nn_acc=0.1370 | lr=0.000010 | 299.2s
+07:03:29 | INFO     | src.training.trainer | New best checkpoint: loss=0.2281 → triplet_resnet50_best.pt
+07:06:21 | INFO     | src.training.trainer | Epoch 2/100 | train_loss=0.7438 | train_nn_acc=0.2778 | val_loss=0.2154 | val_nn_acc=0.1433 | lr=0.000208 | 172.4s
+07:06:22 | INFO     | src.training.trainer | New best checkpoint: loss=0.2154 → triplet_resnet50_best.pt
+07:08:46 | INFO     | src.training.trainer | Epoch 3/100 | train_loss=0.7046 | train_nn_acc=0.2936 | val_loss=0.2072 | val_nn_acc=0.1477 | lr=0.000406 | 143.5s
+07:08:47 | INFO     | src.training.trainer | New best checkpoint: loss=0.2072 → triplet_resnet50_best.pt
+07:11:04 | INFO     | src.training.trainer | Epoch 4/100 | train_loss=0.6813 | train_nn_acc=0.3047 | val_loss=0.2024 | val_nn_acc=0.1507 | lr=0.000604 | 136.7s
+07:11:05 | INFO     | src.training.trainer | New best checkpoint: loss=0.2024 → triplet_resnet50_best.pt
+07:13:20 | INFO     | src.training.trainer | Epoch 5/100 | train_loss=0.6643 | train_nn_acc=0.3045 | val_loss=0.1984 | val_nn_acc=0.1555 | lr=0.000802 | 134.8s
+07:13:20 | INFO     | src.training.trainer | New best checkpoint: loss=0.1984 → triplet_resnet50_best.pt
+07:15:34 | INFO     | src.training.trainer | Epoch 6/100 | train_loss=0.6514 | train_nn_acc=0.3085 | val_loss=0.1952 | val_nn_acc=0.1593 | lr=0.001000 | 133.0s
+07:15:34 | INFO     | src.training.trainer | New best checkpoint: loss=0.1952 → triplet_resnet50_best.pt
+07:17:48 | INFO     | src.training.trainer | Epoch 7/100 | train_loss=0.6403 | train_nn_acc=0.3194 | val_loss=0.1925 | val_nn_acc=0.1631 | lr=0.001000 | 133.9s
+07:17:49 | INFO     | src.training.trainer | New best checkpoint: loss=0.1925 → triplet_resnet50_best.pt
+07:20:01 | INFO     | src.training.trainer | Epoch 8/100 | train_loss=0.6322 | train_nn_acc=0.3274 | val_loss=0.1905 | val_nn_acc=0.1670 | lr=0.000999 | 132.0s
+07:20:01 | INFO     | src.training.trainer | New best checkpoint: loss=0.1905 → triplet_resnet50_best.pt
+07:22:15 | INFO     | src.training.trainer | Epoch 9/100 | train_loss=0.6256 | train_nn_acc=0.3360 | val_loss=0.1889 | val_nn_acc=0.1706 | lr=0.000998 | 132.9s
+07:22:15 | INFO     | src.training.trainer | New best checkpoint: loss=0.1889 → triplet_resnet50_best.pt
+07:24:29 | INFO     | src.training.trainer | Epoch 10/100 | train_loss=0.6203 | train_nn_acc=0.3375 | val_loss=0.1871 | val_nn_acc=0.1788 | lr=0.000996 | 133.3s
+07:24:29 | INFO     | src.training.trainer | New best checkpoint: loss=0.1871 → triplet_resnet50_best.pt
+07:26:43 | INFO     | src.training.trainer | Epoch 11/100 | train_loss=0.6155 | train_nn_acc=0.3482 | val_loss=0.1857 | val_nn_acc=0.1836 | lr=0.000993 | 132.8s
+07:26:43 | INFO     | src.training.trainer | New best checkpoint: loss=0.1857 → triplet_resnet50_best.pt
+07:28:56 | INFO     | src.training.trainer | Epoch 12/100 | train_loss=0.6104 | train_nn_acc=0.3531 | val_loss=0.1846 | val_nn_acc=0.1874 | lr=0.000990 | 132.7s
+07:28:57 | INFO     | src.training.trainer | New best checkpoint: loss=0.1846 → triplet_resnet50_best.pt
+07:31:13 | INFO     | src.training.trainer | Epoch 13/100 | train_loss=0.6063 | train_nn_acc=0.3629 | val_loss=0.1836 | val_nn_acc=0.1885 | lr=0.000987 | 135.9s
+07:31:13 | INFO     | src.training.trainer | New best checkpoint: loss=0.1836 → triplet_resnet50_best.pt
+07:33:28 | INFO     | src.training.trainer | Epoch 14/100 | train_loss=0.6026 | train_nn_acc=0.3666 | val_loss=0.1827 | val_nn_acc=0.1968 | lr=0.000983 | 134.1s
+07:33:28 | INFO     | src.training.trainer | New best checkpoint: loss=0.1827 → triplet_resnet50_best.pt
+07:35:45 | INFO     | src.training.trainer | Epoch 15/100 | train_loss=0.5989 | train_nn_acc=0.3736 | val_loss=0.1818 | val_nn_acc=0.2003 | lr=0.000978 | 136.0s
+07:35:45 | INFO     | src.training.trainer | New best checkpoint: loss=0.1818 → triplet_resnet50_best.pt
+07:38:10 | INFO     | src.training.trainer | Epoch 16/100 | train_loss=0.5956 | train_nn_acc=0.3776 | val_loss=0.1810 | val_nn_acc=0.2038 | lr=0.000973 | 144.9s
+07:38:11 | INFO     | src.training.trainer | New best checkpoint: loss=0.1810 → triplet_resnet50_best.pt
+07:40:41 | INFO     | src.training.trainer | Epoch 17/100 | train_loss=0.5927 | train_nn_acc=0.3816 | val_loss=0.1800 | val_nn_acc=0.2092 | lr=0.000967 | 149.5s
+07:40:41 | INFO     | src.training.trainer | New best checkpoint: loss=0.1800 → triplet_resnet50_best.pt
+07:43:11 | INFO     | src.training.trainer | Epoch 18/100 | train_loss=0.5895 | train_nn_acc=0.3929 | val_loss=0.1792 | val_nn_acc=0.2169 | lr=0.000961 | 150.1s
+07:43:12 | INFO     | src.training.trainer | New best checkpoint: loss=0.1792 → triplet_resnet50_best.pt
+07:45:25 | INFO     | src.training.trainer | Epoch 19/100 | train_loss=0.5864 | train_nn_acc=0.4030 | val_loss=0.1782 | val_nn_acc=0.2215 | lr=0.000955 | 133.0s
+07:45:26 | INFO     | src.training.trainer | New best checkpoint: loss=0.1782 → triplet_resnet50_best.pt
+07:47:40 | INFO     | src.training.trainer | Epoch 20/100 | train_loss=0.5840 | train_nn_acc=0.3988 | val_loss=0.1776 | val_nn_acc=0.2238 | lr=0.000947 | 133.8s
+07:47:40 | INFO     | src.training.trainer | New best checkpoint: loss=0.1776 → triplet_resnet50_best.pt
+07:49:54 | INFO     | src.training.trainer | Epoch 21/100 | train_loss=0.5824 | train_nn_acc=0.4031 | val_loss=0.1768 | val_nn_acc=0.2285 | lr=0.000940 | 132.9s
+07:49:54 | INFO     | src.training.trainer | New best checkpoint: loss=0.1768 → triplet_resnet50_best.pt
+07:52:08 | INFO     | src.training.trainer | Epoch 22/100 | train_loss=0.5799 | train_nn_acc=0.4171 | val_loss=0.1761 | val_nn_acc=0.2338 | lr=0.000932 | 133.8s
+07:52:09 | INFO     | src.training.trainer | New best checkpoint: loss=0.1761 → triplet_resnet50_best.pt
+07:55:07 | INFO     | src.training.trainer | Epoch 23/100 | train_loss=0.5770 | train_nn_acc=0.4205 | val_loss=0.1754 | val_nn_acc=0.2384 | lr=0.000923 | 178.0s
+07:55:07 | INFO     | src.training.trainer | New best checkpoint: loss=0.1754 → triplet_resnet50_best.pt
+07:58:24 | INFO     | src.training.trainer | Epoch 24/100 | train_loss=0.5748 | train_nn_acc=0.4238 | val_loss=0.1747 | val_nn_acc=0.2428 | lr=0.000914 | 196.2s
+07:58:24 | INFO     | src.training.trainer | New best checkpoint: loss=0.1747 → triplet_resnet50_best.pt
+08:01:11 | INFO     | src.training.trainer | Epoch 25/100 | train_loss=0.5727 | train_nn_acc=0.4343 | val_loss=0.1740 | val_nn_acc=0.2501 | lr=0.000905 | 166.6s
+08:01:12 | INFO     | src.training.trainer | New best checkpoint: loss=0.1740 → triplet_resnet50_best.pt
+08:04:42 | INFO     | src.training.trainer | Epoch 26/100 | train_loss=0.5705 | train_nn_acc=0.4389 | val_loss=0.1734 | val_nn_acc=0.2561 | lr=0.000895 | 210.1s
+08:04:43 | INFO     | src.training.trainer | New best checkpoint: loss=0.1734 → triplet_resnet50_best.pt
+08:08:04 | INFO     | src.training.trainer | Epoch 27/100 | train_loss=0.5686 | train_nn_acc=0.4413 | val_loss=0.1729 | val_nn_acc=0.2596 | lr=0.000884 | 201.1s
+08:08:05 | INFO     | src.training.trainer | New best checkpoint: loss=0.1729 → triplet_resnet50_best.pt
+08:10:28 | INFO     | src.training.trainer | Epoch 28/100 | train_loss=0.5663 | train_nn_acc=0.4513 | val_loss=0.1723 | val_nn_acc=0.2655 | lr=0.000874 | 143.2s
+08:10:29 | INFO     | src.training.trainer | New best checkpoint: loss=0.1723 → triplet_resnet50_best.pt
+08:12:54 | INFO     | src.training.trainer | Epoch 29/100 | train_loss=0.5649 | train_nn_acc=0.4503 | val_loss=0.1716 | val_nn_acc=0.2651 | lr=0.000862 | 144.8s
+08:12:54 | INFO     | src.training.trainer | New best checkpoint: loss=0.1716 → triplet_resnet50_best.pt
+08:15:15 | INFO     | src.training.trainer | Epoch 30/100 | train_loss=0.5631 | train_nn_acc=0.4546 | val_loss=0.1711 | val_nn_acc=0.2717 | lr=0.000851 | 140.3s
+08:15:16 | INFO     | src.training.trainer | New best checkpoint: loss=0.1711 → triplet_resnet50_best.pt
+08:17:38 | INFO     | src.training.trainer | Epoch 31/100 | train_loss=0.5611 | train_nn_acc=0.4627 | val_loss=0.1705 | val_nn_acc=0.2759 | lr=0.000839 | 142.2s
+08:17:39 | INFO     | src.training.trainer | New best checkpoint: loss=0.1705 → triplet_resnet50_best.pt
+08:20:44 | INFO     | src.training.trainer | Epoch 32/100 | train_loss=0.5598 | train_nn_acc=0.4662 | val_loss=0.1700 | val_nn_acc=0.2793 | lr=0.000826 | 185.3s
+08:20:45 | INFO     | src.training.trainer | New best checkpoint: loss=0.1700 → triplet_resnet50_best.pt
+08:23:03 | INFO     | src.training.trainer | Epoch 33/100 | train_loss=0.5579 | train_nn_acc=0.4760 | val_loss=0.1695 | val_nn_acc=0.2813 | lr=0.000814 | 137.9s
+08:23:04 | INFO     | src.training.trainer | New best checkpoint: loss=0.1695 → triplet_resnet50_best.pt
+08:25:21 | INFO     | src.training.trainer | Epoch 34/100 | train_loss=0.5563 | train_nn_acc=0.4734 | val_loss=0.1689 | val_nn_acc=0.2858 | lr=0.000801 | 137.6s
+08:25:22 | INFO     | src.training.trainer | New best checkpoint: loss=0.1689 → triplet_resnet50_best.pt
+08:28:01 | INFO     | src.training.trainer | Epoch 35/100 | train_loss=0.5548 | train_nn_acc=0.4773 | val_loss=0.1684 | val_nn_acc=0.2909 | lr=0.000787 | 159.0s
+08:28:02 | INFO     | src.training.trainer | New best checkpoint: loss=0.1684 → triplet_resnet50_best.pt
+08:30:15 | INFO     | src.training.trainer | Epoch 36/100 | train_loss=0.5527 | train_nn_acc=0.4800 | val_loss=0.1678 | val_nn_acc=0.2937 | lr=0.000774 | 133.1s
+08:30:16 | INFO     | src.training.trainer | New best checkpoint: loss=0.1678 → triplet_resnet50_best.pt
+08:32:29 | INFO     | src.training.trainer | Epoch 37/100 | train_loss=0.5515 | train_nn_acc=0.4868 | val_loss=0.1674 | val_nn_acc=0.2965 | lr=0.000760 | 132.8s
+08:32:29 | INFO     | src.training.trainer | New best checkpoint: loss=0.1674 → triplet_resnet50_best.pt
+08:34:49 | INFO     | src.training.trainer | Epoch 38/100 | train_loss=0.5501 | train_nn_acc=0.4912 | val_loss=0.1670 | val_nn_acc=0.3004 | lr=0.000745 | 139.4s
+08:34:50 | INFO     | src.training.trainer | New best checkpoint: loss=0.1670 → triplet_resnet50_best.pt
+08:37:37 | INFO     | src.training.trainer | Epoch 39/100 | train_loss=0.5479 | train_nn_acc=0.5011 | val_loss=0.1668 | val_nn_acc=0.3038 | lr=0.000731 | 167.2s
+08:37:38 | INFO     | src.training.trainer | New best checkpoint: loss=0.1668 → triplet_resnet50_best.pt
+08:39:53 | INFO     | src.training.trainer | Epoch 40/100 | train_loss=0.5475 | train_nn_acc=0.5012 | val_loss=0.1663 | val_nn_acc=0.3077 | lr=0.000716 | 135.3s
+08:39:54 | INFO     | src.training.trainer | New best checkpoint: loss=0.1663 → triplet_resnet50_best.pt
+08:43:04 | INFO     | src.training.trainer | Epoch 41/100 | train_loss=0.5452 | train_nn_acc=0.5090 | val_loss=0.1659 | val_nn_acc=0.3127 | lr=0.000701 | 189.6s
+08:43:04 | INFO     | src.training.trainer | New best checkpoint: loss=0.1659 → triplet_resnet50_best.pt
+08:45:21 | INFO     | src.training.trainer | Epoch 42/100 | train_loss=0.5449 | train_nn_acc=0.5121 | val_loss=0.1653 | val_nn_acc=0.3160 | lr=0.000686 | 136.0s
+08:45:21 | INFO     | src.training.trainer | New best checkpoint: loss=0.1653 → triplet_resnet50_best.pt
+08:47:35 | INFO     | src.training.trainer | Epoch 43/100 | train_loss=0.5427 | train_nn_acc=0.5192 | val_loss=0.1651 | val_nn_acc=0.3183 | lr=0.000670 | 133.4s
+08:47:35 | INFO     | src.training.trainer | New best checkpoint: loss=0.1651 → triplet_resnet50_best.pt
+08:49:50 | INFO     | src.training.trainer | Epoch 44/100 | train_loss=0.5423 | train_nn_acc=0.5236 | val_loss=0.1646 | val_nn_acc=0.3244 | lr=0.000655 | 134.3s
+08:49:50 | INFO     | src.training.trainer | New best checkpoint: loss=0.1646 → triplet_resnet50_best.pt
+08:52:05 | INFO     | src.training.trainer | Epoch 45/100 | train_loss=0.5417 | train_nn_acc=0.5204 | val_loss=0.1643 | val_nn_acc=0.3263 | lr=0.000639 | 134.1s
+08:52:05 | INFO     | src.training.trainer | New best checkpoint: loss=0.1643 → triplet_resnet50_best.pt
+08:54:20 | INFO     | src.training.trainer | Epoch 46/100 | train_loss=0.5402 | train_nn_acc=0.5301 | val_loss=0.1639 | val_nn_acc=0.3287 | lr=0.000623 | 134.3s
+08:54:21 | INFO     | src.training.trainer | New best checkpoint: loss=0.1639 → triplet_resnet50_best.pt
+08:56:36 | INFO     | src.training.trainer | Epoch 47/100 | train_loss=0.5385 | train_nn_acc=0.5350 | val_loss=0.1636 | val_nn_acc=0.3320 | lr=0.000607 | 135.3s
+08:56:37 | INFO     | src.training.trainer | New best checkpoint: loss=0.1636 → triplet_resnet50_best.pt
+08:58:54 | INFO     | src.training.trainer | Epoch 48/100 | train_loss=0.5377 | train_nn_acc=0.5368 | val_loss=0.1632 | val_nn_acc=0.3354 | lr=0.000591 | 136.6s
+08:58:54 | INFO     | src.training.trainer | New best checkpoint: loss=0.1632 → triplet_resnet50_best.pt
+09:01:11 | INFO     | src.training.trainer | Epoch 49/100 | train_loss=0.5365 | train_nn_acc=0.5449 | val_loss=0.1630 | val_nn_acc=0.3387 | lr=0.000575 | 136.2s
+09:01:11 | INFO     | src.training.trainer | New best checkpoint: loss=0.1630 → triplet_resnet50_best.pt
+09:03:26 | INFO     | src.training.trainer | Epoch 50/100 | train_loss=0.5354 | train_nn_acc=0.5410 | val_loss=0.1626 | val_nn_acc=0.3432 | lr=0.000558 | 134.8s
+09:03:27 | INFO     | src.training.trainer | New best checkpoint: loss=0.1626 → triplet_resnet50_best.pt
+09:05:43 | INFO     | src.training.trainer | Epoch 51/100 | train_loss=0.5350 | train_nn_acc=0.5440 | val_loss=0.1624 | val_nn_acc=0.3432 | lr=0.000542 | 135.8s
+09:05:44 | INFO     | src.training.trainer | New best checkpoint: loss=0.1624 → triplet_resnet50_best.pt
+09:08:03 | INFO     | src.training.trainer | Epoch 52/100 | train_loss=0.5339 | train_nn_acc=0.5500 | val_loss=0.1622 | val_nn_acc=0.3442 | lr=0.000525 | 139.1s
+09:08:04 | INFO     | src.training.trainer | New best checkpoint: loss=0.1622 → triplet_resnet50_best.pt
+09:10:28 | INFO     | src.training.trainer | Epoch 53/100 | train_loss=0.5336 | train_nn_acc=0.5499 | val_loss=0.1620 | val_nn_acc=0.3485 | lr=0.000509 | 143.8s
+09:10:28 | INFO     | src.training.trainer | New best checkpoint: loss=0.1620 → triplet_resnet50_best.pt
+09:12:48 | INFO     | src.training.trainer | Epoch 54/100 | train_loss=0.5323 | train_nn_acc=0.5546 | val_loss=0.1616 | val_nn_acc=0.3502 | lr=0.000492 | 139.5s
+09:12:49 | INFO     | src.training.trainer | New best checkpoint: loss=0.1616 → triplet_resnet50_best.pt
+09:15:34 | INFO     | src.training.trainer | Epoch 55/100 | train_loss=0.5310 | train_nn_acc=0.5584 | val_loss=0.1615 | val_nn_acc=0.3527 | lr=0.000476 | 165.5s
+09:15:35 | INFO     | src.training.trainer | New best checkpoint: loss=0.1615 → triplet_resnet50_best.pt
+09:17:51 | INFO     | src.training.trainer | Epoch 56/100 | train_loss=0.5309 | train_nn_acc=0.5572 | val_loss=0.1613 | val_nn_acc=0.3559 | lr=0.000459 | 135.6s
+09:17:51 | INFO     | src.training.trainer | New best checkpoint: loss=0.1613 → triplet_resnet50_best.pt
+09:20:04 | INFO     | src.training.trainer | Epoch 57/100 | train_loss=0.5299 | train_nn_acc=0.5577 | val_loss=0.1611 | val_nn_acc=0.3584 | lr=0.000443 | 132.1s
+09:20:04 | INFO     | src.training.trainer | New best checkpoint: loss=0.1611 → triplet_resnet50_best.pt
+09:22:18 | INFO     | src.training.trainer | Epoch 58/100 | train_loss=0.5297 | train_nn_acc=0.5619 | val_loss=0.1609 | val_nn_acc=0.3593 | lr=0.000426 | 133.2s
+09:22:18 | INFO     | src.training.trainer | New best checkpoint: loss=0.1609 → triplet_resnet50_best.pt
+09:24:33 | INFO     | src.training.trainer | Epoch 59/100 | train_loss=0.5288 | train_nn_acc=0.5665 | val_loss=0.1606 | val_nn_acc=0.3622 | lr=0.000410 | 134.3s
+09:24:33 | INFO     | src.training.trainer | New best checkpoint: loss=0.1606 → triplet_resnet50_best.pt
+09:26:45 | INFO     | src.training.trainer | Epoch 60/100 | train_loss=0.5284 | train_nn_acc=0.5658 | val_loss=0.1604 | val_nn_acc=0.3640 | lr=0.000394 | 131.6s
+09:26:46 | INFO     | src.training.trainer | New best checkpoint: loss=0.1604 → triplet_resnet50_best.pt
+09:29:02 | INFO     | src.training.trainer | Epoch 61/100 | train_loss=0.5273 | train_nn_acc=0.5663 | val_loss=0.1602 | val_nn_acc=0.3652 | lr=0.000378 | 135.4s
+09:29:02 | INFO     | src.training.trainer | New best checkpoint: loss=0.1602 → triplet_resnet50_best.pt
+09:31:15 | INFO     | src.training.trainer | Epoch 62/100 | train_loss=0.5275 | train_nn_acc=0.5718 | val_loss=0.1601 | val_nn_acc=0.3667 | lr=0.000362 | 132.7s
+09:31:16 | INFO     | src.training.trainer | New best checkpoint: loss=0.1601 → triplet_resnet50_best.pt
+09:33:28 | INFO     | src.training.trainer | Epoch 63/100 | train_loss=0.5272 | train_nn_acc=0.5685 | val_loss=0.1599 | val_nn_acc=0.3691 | lr=0.000346 | 132.0s
+09:33:28 | INFO     | src.training.trainer | New best checkpoint: loss=0.1599 → triplet_resnet50_best.pt
+09:35:41 | INFO     | src.training.trainer | Epoch 64/100 | train_loss=0.5259 | train_nn_acc=0.5721 | val_loss=0.1597 | val_nn_acc=0.3705 | lr=0.000331 | 132.1s
+09:35:41 | INFO     | src.training.trainer | New best checkpoint: loss=0.1597 → triplet_resnet50_best.pt
+09:37:58 | INFO     | src.training.trainer | Epoch 65/100 | train_loss=0.5263 | train_nn_acc=0.5709 | val_loss=0.1596 | val_nn_acc=0.3722 | lr=0.000315 | 136.7s
+09:37:59 | INFO     | src.training.trainer | New best checkpoint: loss=0.1596 → triplet_resnet50_best.pt
+09:40:29 | INFO     | src.training.trainer | Epoch 66/100 | train_loss=0.5251 | train_nn_acc=0.5779 | val_loss=0.1595 | val_nn_acc=0.3728 | lr=0.000300 | 149.8s
+09:40:29 | INFO     | src.training.trainer | New best checkpoint: loss=0.1595 → triplet_resnet50_best.pt
+09:42:44 | INFO     | src.training.trainer | Epoch 67/100 | train_loss=0.5250 | train_nn_acc=0.5799 | val_loss=0.1593 | val_nn_acc=0.3752 | lr=0.000285 | 134.4s
+09:42:45 | INFO     | src.training.trainer | New best checkpoint: loss=0.1593 → triplet_resnet50_best.pt
+09:45:02 | INFO     | src.training.trainer | Epoch 68/100 | train_loss=0.5247 | train_nn_acc=0.5814 | val_loss=0.1592 | val_nn_acc=0.3779 | lr=0.000270 | 136.9s
+09:45:02 | INFO     | src.training.trainer | New best checkpoint: loss=0.1592 → triplet_resnet50_best.pt
+09:47:36 | INFO     | src.training.trainer | Epoch 69/100 | train_loss=0.5244 | train_nn_acc=0.5741 | val_loss=0.1591 | val_nn_acc=0.3773 | lr=0.000256 | 153.1s
+09:47:36 | INFO     | src.training.trainer | New best checkpoint: loss=0.1591 → triplet_resnet50_best.pt
+09:49:52 | INFO     | src.training.trainer | Epoch 70/100 | train_loss=0.5235 | train_nn_acc=0.5881 | val_loss=0.1590 | val_nn_acc=0.3792 | lr=0.000241 | 134.9s
+09:49:52 | INFO     | src.training.trainer | New best checkpoint: loss=0.1590 → triplet_resnet50_best.pt
+09:52:06 | INFO     | src.training.trainer | Epoch 71/100 | train_loss=0.5231 | train_nn_acc=0.5828 | val_loss=0.1588 | val_nn_acc=0.3801 | lr=0.000227 | 133.7s
+09:52:07 | INFO     | src.training.trainer | New best checkpoint: loss=0.1588 → triplet_resnet50_best.pt
+09:54:21 | INFO     | src.training.trainer | Epoch 72/100 | train_loss=0.5229 | train_nn_acc=0.5860 | val_loss=0.1587 | val_nn_acc=0.3807 | lr=0.000214 | 133.5s
+09:54:21 | INFO     | src.training.trainer | New best checkpoint: loss=0.1587 → triplet_resnet50_best.pt
+09:56:35 | INFO     | src.training.trainer | Epoch 73/100 | train_loss=0.5217 | train_nn_acc=0.5856 | val_loss=0.1586 | val_nn_acc=0.3825 | lr=0.000200 | 133.4s
+09:56:35 | INFO     | src.training.trainer | New best checkpoint: loss=0.1586 → triplet_resnet50_best.pt
+09:58:49 | INFO     | src.training.trainer | Epoch 74/100 | train_loss=0.5224 | train_nn_acc=0.5792 | val_loss=0.1585 | val_nn_acc=0.3853 | lr=0.000187 | 133.1s
+09:58:49 | INFO     | src.training.trainer | New best checkpoint: loss=0.1585 → triplet_resnet50_best.pt
+10:01:02 | INFO     | src.training.trainer | Epoch 75/100 | train_loss=0.5219 | train_nn_acc=0.5847 | val_loss=0.1584 | val_nn_acc=0.3846 | lr=0.000175 | 133.0s
+10:01:03 | INFO     | src.training.trainer | New best checkpoint: loss=0.1584 → triplet_resnet50_best.pt
+10:03:17 | INFO     | src.training.trainer | Epoch 76/100 | train_loss=0.5220 | train_nn_acc=0.5875 | val_loss=0.1584 | val_nn_acc=0.3858 | lr=0.000162 | 134.0s
+10:03:18 | INFO     | src.training.trainer | New best checkpoint: loss=0.1584 → triplet_resnet50_best.pt
+10:05:32 | INFO     | src.training.trainer | Epoch 77/100 | train_loss=0.5211 | train_nn_acc=0.5937 | val_loss=0.1583 | val_nn_acc=0.3869 | lr=0.000150 | 134.0s
+10:05:33 | INFO     | src.training.trainer | New best checkpoint: loss=0.1583 → triplet_resnet50_best.pt
+10:07:46 | INFO     | src.training.trainer | Epoch 78/100 | train_loss=0.5223 | train_nn_acc=0.5813 | val_loss=0.1583 | val_nn_acc=0.3870 | lr=0.000139 | 132.9s
+10:10:03 | INFO     | src.training.trainer | Epoch 79/100 | train_loss=0.5208 | train_nn_acc=0.5957 | val_loss=0.1582 | val_nn_acc=0.3865 | lr=0.000127 | 136.7s
+10:10:03 | INFO     | src.training.trainer | New best checkpoint: loss=0.1582 → triplet_resnet50_best.pt
+10:12:17 | INFO     | src.training.trainer | Epoch 80/100 | train_loss=0.5197 | train_nn_acc=0.6027 | val_loss=0.1581 | val_nn_acc=0.3879 | lr=0.000117 | 133.5s
+10:12:18 | INFO     | src.training.trainer | New best checkpoint: loss=0.1581 → triplet_resnet50_best.pt
+10:14:31 | INFO     | src.training.trainer | Epoch 81/100 | train_loss=0.5210 | train_nn_acc=0.5953 | val_loss=0.1581 | val_nn_acc=0.3868 | lr=0.000106 | 133.1s
+10:14:32 | INFO     | src.training.trainer | New best checkpoint: loss=0.1581 → triplet_resnet50_best.pt
+10:16:45 | INFO     | src.training.trainer | Epoch 82/100 | train_loss=0.5203 | train_nn_acc=0.5927 | val_loss=0.1580 | val_nn_acc=0.3891 | lr=0.000096 | 133.0s
+10:16:46 | INFO     | src.training.trainer | New best checkpoint: loss=0.1580 → triplet_resnet50_best.pt
+10:19:02 | INFO     | src.training.trainer | Epoch 83/100 | train_loss=0.5203 | train_nn_acc=0.5954 | val_loss=0.1579 | val_nn_acc=0.3892 | lr=0.000087 | 135.9s
+10:19:03 | INFO     | src.training.trainer | New best checkpoint: loss=0.1579 → triplet_resnet50_best.pt
+10:21:16 | INFO     | src.training.trainer | Epoch 84/100 | train_loss=0.5209 | train_nn_acc=0.5924 | val_loss=0.1579 | val_nn_acc=0.3882 | lr=0.000078 | 133.2s
+10:21:17 | INFO     | src.training.trainer | New best checkpoint: loss=0.1579 → triplet_resnet50_best.pt
+10:23:30 | INFO     | src.training.trainer | Epoch 85/100 | train_loss=0.5199 | train_nn_acc=0.5946 | val_loss=0.1578 | val_nn_acc=0.3900 | lr=0.000069 | 132.9s
+10:23:30 | INFO     | src.training.trainer | New best checkpoint: loss=0.1578 → triplet_resnet50_best.pt
+10:25:44 | INFO     | src.training.trainer | Epoch 86/100 | train_loss=0.5201 | train_nn_acc=0.5965 | val_loss=0.1578 | val_nn_acc=0.3899 | lr=0.000061 | 133.0s
+10:25:44 | INFO     | src.training.trainer | New best checkpoint: loss=0.1578 → triplet_resnet50_best.pt
+10:27:59 | INFO     | src.training.trainer | Epoch 87/100 | train_loss=0.5201 | train_nn_acc=0.5947 | val_loss=0.1578 | val_nn_acc=0.3899 | lr=0.000054 | 134.1s
+10:27:59 | INFO     | src.training.trainer | New best checkpoint: loss=0.1578 → triplet_resnet50_best.pt
+10:30:16 | INFO     | src.training.trainer | Epoch 88/100 | train_loss=0.5192 | train_nn_acc=0.5965 | val_loss=0.1578 | val_nn_acc=0.3909 | lr=0.000046 | 136.4s
+10:30:16 | INFO     | src.training.trainer | New best checkpoint: loss=0.1578 → triplet_resnet50_best.pt
+10:32:31 | INFO     | src.training.trainer | Epoch 89/100 | train_loss=0.5195 | train_nn_acc=0.6004 | val_loss=0.1578 | val_nn_acc=0.3889 | lr=0.000040 | 134.2s
+10:32:31 | INFO     | src.training.trainer | New best checkpoint: loss=0.1578 → triplet_resnet50_best.pt
+10:34:45 | INFO     | src.training.trainer | Epoch 90/100 | train_loss=0.5196 | train_nn_acc=0.5991 | val_loss=0.1577 | val_nn_acc=0.3902 | lr=0.000034 | 133.6s
+10:34:46 | INFO     | src.training.trainer | New best checkpoint: loss=0.1577 → triplet_resnet50_best.pt
+10:37:00 | INFO     | src.training.trainer | Epoch 91/100 | train_loss=0.5200 | train_nn_acc=0.5915 | val_loss=0.1577 | val_nn_acc=0.3912 | lr=0.000028 | 133.7s
+10:37:00 | INFO     | src.training.trainer | New best checkpoint: loss=0.1577 → triplet_resnet50_best.pt
+10:39:16 | INFO     | src.training.trainer | Epoch 92/100 | train_loss=0.5189 | train_nn_acc=0.5978 | val_loss=0.1577 | val_nn_acc=0.3906 | lr=0.000023 | 135.4s
+10:39:17 | INFO     | src.training.trainer | New best checkpoint: loss=0.1577 → triplet_resnet50_best.pt
+10:41:32 | INFO     | src.training.trainer | Epoch 93/100 | train_loss=0.5208 | train_nn_acc=0.5883 | val_loss=0.1577 | val_nn_acc=0.3901 | lr=0.000018 | 134.7s
+10:43:45 | INFO     | src.training.trainer | Epoch 94/100 | train_loss=0.5202 | train_nn_acc=0.5909 | val_loss=0.1577 | val_nn_acc=0.3923 | lr=0.000014 | 133.1s
+10:46:01 | INFO     | src.training.trainer | Epoch 95/100 | train_loss=0.5200 | train_nn_acc=0.5893 | val_loss=0.1577 | val_nn_acc=0.3911 | lr=0.000011 | 135.2s
+10:48:15 | INFO     | src.training.trainer | Epoch 96/100 | train_loss=0.5193 | train_nn_acc=0.5984 | val_loss=0.1577 | val_nn_acc=0.3916 | lr=0.000008 | 133.5s
+10:48:15 | INFO     | src.training.trainer | New best checkpoint: loss=0.1577 → triplet_resnet50_best.pt
+10:50:29 | INFO     | src.training.trainer | Epoch 97/100 | train_loss=0.5198 | train_nn_acc=0.5948 | val_loss=0.1576 | val_nn_acc=0.3926 | lr=0.000005 | 133.1s
+10:50:29 | INFO     | src.training.trainer | New best checkpoint: loss=0.1576 → triplet_resnet50_best.pt
+10:52:48 | INFO     | src.training.trainer | Epoch 98/100 | train_loss=0.5196 | train_nn_acc=0.5960 | val_loss=0.1576 | val_nn_acc=0.3909 | lr=0.000003 | 138.8s
+10:52:49 | INFO     | src.training.trainer | New best checkpoint: loss=0.1576 → triplet_resnet50_best.pt
+10:55:04 | INFO     | src.training.trainer | Epoch 99/100 | train_loss=0.5190 | train_nn_acc=0.5995 | val_loss=0.1577 | val_nn_acc=0.3910 | lr=0.000002 | 135.2s
+10:57:18 | INFO     | src.training.trainer | Epoch 100/100 | train_loss=0.5191 | train_nn_acc=0.5999 | val_loss=0.1576 | val_nn_acc=0.3912 | lr=0.000001 | 133.0s
+10:57:18 | INFO     | src.training.trainer | Training complete. Best val loss: 0.1576
+10:57:18 | INFO     | train | Training finished. Best monitored loss: 0.1576
+10:57:20 | INFO     | src.tracking.wandb_wrapper | Checkpoint uploaded to W&B: triplet_resnet50_best.pt

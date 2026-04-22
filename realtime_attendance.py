@@ -22,7 +22,7 @@ Preprocessing uses your project's own PreprocessingPipeline
 
 Usage:
     python realtime_attendance.py \
-        --checkpoint checkpoints/arcface_resnet50_latest.pt \
+        --checkpoint checkpoints/sphereface_resnet50_with_t_0.5080.pt \
         --config     configs/base.yaml
 
     # Use a video file instead of webcam:

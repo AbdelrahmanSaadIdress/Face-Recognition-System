@@ -149,15 +149,15 @@ sys.exit(0)
 # # Minimal
 # python -m src.evaluation.evaluator \
 #     --model-name arcface_resnet50 \
-#     --checkpoint checkpoints/run42/best.pt
+#     --checkpoint checkpoints/sphereface_resnet50_with_t_0.5080.pt
 
 # # With overrides
-# python -m src.evaluation.evaluator \
+# python -m eval.py \
 #     --model-name arcface_resnet50 \
-#     --checkpoint checkpoints/run42/best.pt \
-#     --lfw-dir /data/lfw \
-#     --config configs/prod.yaml \
-#     --threshold 0.55 \
+#     --checkpoint checkpoints/sphereface_resnet50_with_t_0.5080.pt \
+#     --lfw-dir data/raw/Faces \
+#     --config configs/base.yaml \
+#     --threshold 0.3481 \
 #     --batch-size 128 \
 #     --device cuda \
 #     --no-tracking

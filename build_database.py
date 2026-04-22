@@ -18,7 +18,7 @@ so embeddings are produced under identical conditions.
 
 Usage:
     python build_database.py \
-        --checkpoint checkpoints/arcface_resnet50_latest.pt \
+        --checkpoint checkpoints/sphereface_resnet50_with_t_0.5080.pt \
         --dataset    data/raw/Identities \
         --config     configs/base.yaml
 
@@ -54,7 +54,7 @@ log = logging.getLogger("build_database")
 # ─────────────────────────────────────────────
 # DEFAULTS  (all overridable via CLI)
 # ─────────────────────────────────────────────
-MAX_IDENTITIES    = 100
+MAX_IDENTITIES    = 50
 GALLERY_SIZE      = 10    # images per identity  →  stored in ChromaDB
 PROBE_SIZE        = 5     # images per identity  →  held-out for evaluation
 TEST_IMG_DIR      = "test_images"
@@ -191,7 +191,7 @@ def evaluate_topk(
             n_results        = max_k,
             include          = ["metadatas", "distances"],
         )
-        returned_ids = [m.get("mongo_id") for m in result["metadatas"][0]]
+        returned_ids = [m.get("identity_name") for m in result["metadatas"][0]]
 
         # per-identity bookkeeping
         if identity_name not in per_identity:
@@ -201,7 +201,7 @@ def evaluate_topk(
         total += 1
 
         for k in ks:
-            if true_mongo_id in returned_ids[:k]:
+            if identity_name in returned_ids[:k]:
                 hits[k] += 1
                 per_identity[identity_name][f"top{k}"] += 1
 

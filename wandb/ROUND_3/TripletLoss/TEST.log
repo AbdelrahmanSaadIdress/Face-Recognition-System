@@ -1,0 +1,19 @@
+13:20:32 | INFO | src.data.lfw_dataset | LFWPairsDataset (test): 1000 pairs from data/raw/test.csv
+13:20:34 | INFO | src.models.backbone | Built backbone resnet50 | pretrained=True | embedding_dim=512
+13:20:34 | INFO | src.models.face_model | FaceModel ready — backbone=resnet50  loss=None  embedding_dim=512
+13:20:34 | INFO | src.evaluation.evaluator | LFWEvaluator ready | pairs=1000 | device=cuda | threshold=0.1974
+13:20:35 | INFO | src.evaluation.evaluator | Backbone weights loaded from /root/.cache/huggingface/hub/models--AbdoSaad24--TripletLossModels/snapshots/02a59d1c25c916bf5fb8f5de095571a83b5c7690/triplet_resnet50_best.pt
+13:20:38 | INFO | src.evaluation.metrics | Evaluation @ threshold=0.1974 — FAR=0.2740  FRR=0.2740  F1=0.7260  EER=0.2740  AUC=0.7974
+13:20:38 | INFO | src.evaluation.evaluator | LFW [triplet_resnet50] EER=0.2740  AUC=0.7974  FAR=0.2740  FRR=0.2740  F1=0.7260  embed=3.4s
+
+── LFW Evaluation Results ──────────────────────────
+  Model      : triplet_resnet50
+  Pairs      : 1000
+  EER        : 0.2740
+  EER thresh : 0.1974
+  AUC        : 0.7974
+  FAR        : 0.2740
+  FRR        : 0.2740
+  F1         : 0.7260
+  Embed time : 3.4s
+────────────────────────────────────────────────────

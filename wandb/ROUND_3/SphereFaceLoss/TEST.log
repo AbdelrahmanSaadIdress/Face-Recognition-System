@@ -1,0 +1,19 @@
+06:43:46 | INFO | src.data.lfw_dataset | LFWPairsDataset (test): 1000 pairs from data/raw/test.csv
+06:43:48 | INFO | src.models.backbone | Built backbone resnet50 | pretrained=True | embedding_dim=512
+06:43:48 | INFO | src.models.face_model | FaceModel ready — backbone=resnet50  loss=None  embedding_dim=512
+06:43:48 | INFO | src.evaluation.evaluator | LFWEvaluator ready | pairs=1000 | device=cuda | threshold=0.5080
+06:43:48 | INFO | src.evaluation.evaluator | Backbone weights loaded from checkpoints/sphereface_resnet50_epoch_0010.pt
+06:43:51 | INFO | src.evaluation.metrics | Evaluation @ threshold=0.5080 — FAR=0.2340  FRR=0.2340  F1=0.7660  EER=0.2340  AUC=0.8464
+06:43:51 | INFO | src.evaluation.evaluator | LFW [sphereface_resnet50] EER=0.2340  AUC=0.8464  FAR=0.2340  FRR=0.2340  F1=0.7660  embed=3.3s
+
+── LFW Evaluation Results ──────────────────────────
+  Model      : sphereface_resnet50
+  Pairs      : 1000
+  EER        : 0.2340
+  EER thresh : 0.5080
+  AUC        : 0.8464
+  FAR        : 0.2340
+  FRR        : 0.2340
+  F1         : 0.7660
+  Embed time : 3.3s
+────────────────────────────────────────────────────
