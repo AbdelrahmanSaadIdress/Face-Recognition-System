@@ -137,6 +137,8 @@ class TripletLossConfig:
     margin: float = 0.3
     mining: str = "semi-hard"
     batch_hard: bool = True
+    pk_p:int = 32              # identities per batch  (batch_size = pk_p × pk_k = 128)
+    pk_k: int = 4  
 
     def __post_init__(self) -> None:
         valid = {"hard", "semi-hard", "random"}

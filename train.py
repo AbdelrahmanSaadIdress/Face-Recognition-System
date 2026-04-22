@@ -153,12 +153,88 @@ def seed_everything(seed: int) -> None:
 # ---------------------------------------------------------------------------
 
 
+# def build_dataloaders(
+#     cfg: Config,
+#     val_split: float,
+# ) -> tuple[DataLoader, Optional[DataLoader]]:
+#     """
+#     Build train (and optional val) DataLoaders from the training dataset.
+
+#     Args:
+#         cfg:       Full config.
+#         val_split: Fraction of data to hold out for validation.
+#                    0.0 → no validation loader returned.
+
+#     Returns:
+#         (train_loader, val_loader)   val_loader is None when val_split=0.
+#     """
+#     full_dataset = TrainFaceDataset(
+#         data_cfg=cfg.data,
+#         preproc_cfg=cfg.preprocessing,
+#         split="train",
+#     )
+
+#     if val_split > 0.0:
+#         n_total = len(full_dataset)
+#         n_val   = max(1, int(n_total * val_split))
+#         n_train = n_total - n_val
+
+#         train_ds, val_ds = random_split(
+#             full_dataset,
+#             [n_train, n_val],
+#             generator=torch.Generator().manual_seed(cfg.project.seed),
+#         )
+#         # Validation split: disable augmentation by wrapping in a no-aug dataset
+#         # We rebuild with split="val" for a clean no-aug pipeline
+#         val_ds_clean = TrainFaceDataset(
+#             data_cfg=cfg.data,
+#             preproc_cfg=cfg.preprocessing,
+#             split="val",
+#         )
+#         # Use the same indices the random_split assigned
+#         from torch.utils.data import Subset
+#         val_ds_clean = Subset(val_ds_clean, val_ds.indices)  # type: ignore[attr-defined]
+
+#         logger.info("Dataset split: train=%d  val=%d", n_train, n_val)
+#     else:
+#         train_ds = full_dataset
+#         val_ds_clean = None
+#         logger.info("No validation split (val_split=0)")
+
+#     train_loader = DataLoader(
+#         train_ds,
+#         batch_size=cfg.training.batch_size,
+#         shuffle=True,
+#         num_workers=cfg.data.num_workers,
+#         pin_memory=cfg.data.pin_memory,
+#         drop_last=True,               # keeps batch sizes uniform (important for BN)
+#         persistent_workers=cfg.data.num_workers > 0,
+#     )
+
+#     val_loader: Optional[DataLoader] = None
+#     if val_ds_clean is not None:
+#         val_loader = DataLoader(
+#             val_ds_clean,
+#             batch_size=cfg.training.batch_size * 2,   # larger batches OK without grad
+#             shuffle=False,
+#             num_workers=cfg.data.num_workers,
+#             pin_memory=cfg.data.pin_memory,
+#             persistent_workers=cfg.data.num_workers > 0,
+#         )
+
+#     return train_loader, val_loader
+
 def build_dataloaders(
     cfg: Config,
     val_split: float,
 ) -> tuple[DataLoader, Optional[DataLoader]]:
     """
     Build train (and optional val) DataLoaders from the training dataset.
+
+    For Triplet Loss, the train loader uses PKSampler to guarantee that
+    every batch contains P identities × K images each — a requirement for
+    meaningful hard mining. ArcFace and SphereFace use standard random
+    shuffling, unchanged from previous rounds.
 
     Args:
         cfg:       Full config.
@@ -184,14 +260,11 @@ def build_dataloaders(
             [n_train, n_val],
             generator=torch.Generator().manual_seed(cfg.project.seed),
         )
-        # Validation split: disable augmentation by wrapping in a no-aug dataset
-        # We rebuild with split="val" for a clean no-aug pipeline
         val_ds_clean = TrainFaceDataset(
             data_cfg=cfg.data,
             preproc_cfg=cfg.preprocessing,
             split="val",
         )
-        # Use the same indices the random_split assigned
         from torch.utils.data import Subset
         val_ds_clean = Subset(val_ds_clean, val_ds.indices)  # type: ignore[attr-defined]
 
@@ -201,21 +274,43 @@ def build_dataloaders(
         val_ds_clean = None
         logger.info("No validation split (val_split=0)")
 
-    train_loader = DataLoader(
-        train_ds,
-        batch_size=cfg.training.batch_size,
-        shuffle=True,
-        num_workers=cfg.data.num_workers,
-        pin_memory=cfg.data.pin_memory,
-        drop_last=True,               # keeps batch sizes uniform (important for BN)
-        persistent_workers=cfg.data.num_workers > 0,
-    )
+    # ── Train loader — PK sampling for triplet, random shuffle for everything else ──
+    if cfg.model.name == "triplet":
+        from src.data.pk_sampler import PKSampler
 
+        pk_p = getattr(cfg.loss.triplet, "pk_p", 32)
+        pk_k = getattr(cfg.loss.triplet, "pk_k", 4)
+
+        sampler = PKSampler(train_ds, p=pk_p, k=pk_k, drop_incomplete=True)
+
+        train_loader = DataLoader(
+            train_ds,
+            batch_sampler=sampler,          # batch_sampler controls batch construction
+            num_workers=cfg.data.num_workers,
+            pin_memory=cfg.data.pin_memory,
+            persistent_workers=cfg.data.num_workers > 0,
+        )
+        logger.info(
+            "Triplet train loader: PKSampler | p=%d | k=%d | batch_size=%d",
+            pk_p, pk_k, pk_p * pk_k,
+        )
+    else:
+        train_loader = DataLoader(
+            train_ds,
+            batch_size=cfg.training.batch_size,
+            shuffle=True,
+            num_workers=cfg.data.num_workers,
+            pin_memory=cfg.data.pin_memory,
+            drop_last=True,
+            persistent_workers=cfg.data.num_workers > 0,
+        )
+
+    # ── Val loader — always random, unchanged for all models ──
     val_loader: Optional[DataLoader] = None
     if val_ds_clean is not None:
         val_loader = DataLoader(
             val_ds_clean,
-            batch_size=cfg.training.batch_size * 2,   # larger batches OK without grad
+            batch_size=cfg.training.batch_size * 2,
             shuffle=False,
             num_workers=cfg.data.num_workers,
             pin_memory=cfg.data.pin_memory,
@@ -223,7 +318,6 @@ def build_dataloaders(
         )
 
     return train_loader, val_loader
-
 
 def build_optimizer(model: nn.Module, cfg: Config) -> torch.optim.Optimizer:
     """

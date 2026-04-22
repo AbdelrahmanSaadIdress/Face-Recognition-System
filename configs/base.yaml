@@ -61,7 +61,7 @@ preprocessing:
 # Model
 # ---------------------------------------------------------------------------
 model:
-  name: arcface           # softmax | facenet | sphereface | arcface
+  name: triplet           # softmax | triplet | sphereface | arcface
   backbone: resnet50      # resnet50 | resnet100 | mobilenet_v2
   embedding_dim: 512
   pretrained_backbone: true
@@ -85,8 +85,10 @@ loss:
   # --- Triplet ---
   triplet:
     margin: 0.3
-    mining: semi-hard     # hard | semi-hard | random
+    mining: hard          # changed from semi-hard — BatchHard with PK sampling
     batch_hard: true
+    pk_p: 32              # identities per batch  (batch_size = pk_p × pk_k = 128)
+    pk_k: 4               # images per identity per batch
 
   # --- Softmax baseline ---
   softmax:

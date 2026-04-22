@@ -268,20 +268,61 @@ Triplet Loss training was stopped in this round. **Fixing the mining strategy is
 
 ### Round 3 — Full Convergence & Fixed Triplet Mining *(Coming Soon)*
 
-> **Objective:** Address all outstanding issues identified across Rounds 1 and 2 in a single controlled experiment. ArcFace and SphereFace are trained to full convergence (100 epochs) on the same small dataset as Round 1. Triplet Loss is retrained with an improved mining strategy. This round will produce the first clean, fully-converged comparison across all three models under fair conditions.
+> **Objective:** Address all outstanding issues identified across Rounds 1 and 2
+> in a single controlled experiment. ArcFace and SphereFace are trained to full
+> convergence (100 epochs) on the same small dataset as Round 1. Triplet Loss is
+> retrained from scratch with a corrected batch construction strategy and a more
+> aggressive mining approach. This round will produce the first clean,
+> fully-converged comparison across all three models under fair conditions.
 
 #### 🔬 What Will Change
 
 | Change | Previous Rounds | Round 3 |
 |---|---|---|
 | ArcFace / SphereFace epochs | Stopped early (~67–72) | **Full 100 epochs** |
-| Triplet mining strategy | Semi-hard (ineffective) | **Improved mining — BatchHard / Hard Negative** |
+| Triplet batch construction | Random shuffle (broken) | **PK Sampling — P identities × K images per batch** |
+| Triplet mining strategy | Semi-hard (collapsed due to empty positives) | **BatchHard — hardest positive + hardest negative per anchor** |
 | Dataset size | Small (R1) / Larger for Triplet (R2) | **Small dataset — same as Round 1 for all models** |
 | Backbone | ResNet-50 | ResNet-50 *(unchanged)* |
 
-> **Rationale:** Scaling data is expensive and should only happen once all models are confirmed to be learning correctly. Round 3 establishes the true performance ceiling for all three models at small data scale with correct training. If results still fall short after full convergence, data scaling becomes the logical next step in Round 4.
+> **Rationale:** Root cause analysis of Round 2 revealed that the Triplet mining
+> failure was not caused by the loss implementation or the dataset size, but by
+> the batch construction strategy. Random shuffling produced batches where most
+> anchors had zero valid positives, silently zeroing out the loss from the early
+> epochs onward. Fixing this requires two coordinated changes: a custom PK
+> sampler that guarantees multiple images per identity per batch, and switching
+> to BatchHard mining which is robust once positives are guaranteed. ArcFace and
+> SphereFace require no structural changes — only full convergence. Scaling data
+> remains deferred until all three models are confirmed to be learning correctly
+> under fair conditions.
 
----
+#### 🔍 Root Cause — Why Triplet Mining Was Silently Broken
+
+The mining failure had nothing to do with the loss function code itself.
+The code was correct. The problem was what it received as input.
+
+**The batch construction problem:** The standard `DataLoader` with random
+shuffling filled each batch of 512 images by sampling randomly across all
+~9,000 identities. With that many identities, most batches contained only
+one image per person. This means for most anchors in the batch, there was
+no second image of the same identity — zero valid positives.
+
+**How this silently zeroed the loss:** When an anchor has no valid positive
+in the batch, the positive mask is all-False. The distance to the
+"hardest positive" is computed as 0.0 by default. Semi-hard mining then
+searches for negatives in the range `(0.0, 0.0 + margin)`. With a
+pretrained backbone, almost all pairwise distances already exceed the
+margin, so no semi-hard negatives are found either. The fallback to hard
+mining still computes loss against `d_ap = 0.0`, which also collapses to
+near zero. **The model received near-zero gradients from the very first
+epoch and never recovered.**
+
+**Why the Round 1 LFW result was misleading:** The pretrained ResNet-50
+backbone already produced usable embeddings before any triplet training
+began. The small amount of learning that occurred in the rare early batches
+where two images of the same person happened to co-occur was enough to
+slightly refine the backbone. The LFW result reflects the pretrained
+backbone doing most of the work, not genuine triplet learning.
 
 #### 📊 Results — Training Performance
 
