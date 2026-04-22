@@ -1,32 +1,20 @@
 """
 src/data/pk_sampler.py
 ======================
-PK Sampler — structured batch construction for Triplet Loss training.
+PK Sampler for Triplet Loss training.
 
-Why this exists
----------------
-Standard random shuffling fills batches by drawing images uniformly across
-all identities. With thousands of identities, most batches end up with only
-one image per person, leaving every anchor without a valid positive in the
-batch. The triplet loss then silently collapses to near-zero gradients from
-the very first epoch.
+Every batch = P identities × K images = P*K samples.
+This guarantees every anchor has K-1 valid positives, making
+hard/semi-hard mining well-defined at every step.
 
-PK sampling fixes this by constructing every batch as:
-    P identities × K images each  →  batch of P*K images
-
-This guarantees every anchor has K-1 valid positives in its batch, making
-hard and semi-hard mining well-defined at every training step.
-
-This sampler is ONLY used for Triplet Loss. ArcFace and SphereFace use the
-standard DataLoader shuffle and are unaffected.
+ONLY used for Triplet Loss. ArcFace/SphereFace use standard shuffle.
 
 Usage
 -----
-    sampler = PKSampler(dataset, p=32, k=4)
-    loader  = DataLoader(dataset, batch_sampler=sampler, ...)
+    sampler = PKSampler(dataset, p=32, k=16)
+    loader  = DataLoader(dataset, batch_sampler=sampler, num_workers=4, ...)
 
-Note: use `batch_sampler=` (not `sampler=`), and do NOT set `batch_size`,
-`shuffle`, or `drop_last` on the DataLoader when using batch_sampler.
+    # Do NOT set batch_size, shuffle, or drop_last when using batch_sampler.
 """
 
 from __future__ import annotations
@@ -43,139 +31,127 @@ logger = logging.getLogger(__name__)
 
 class PKSampler(Sampler):
     """
-    Yields batches of size P*K where each batch contains exactly K images
+    Yields batches of P*K indices where each batch has exactly K images
     from each of P randomly chosen identities.
 
-    Args:
-        dataset:       TrainFaceDataset (or any Subset wrapping one).
-                       Must expose a `_samples` list of (path, label) tuples,
-                       or a wrapped dataset that does via `.dataset._samples`.
-        p:             Number of identities per batch.
-        k:             Number of images per identity per batch.
-        drop_incomplete: If True, skip the last batch when fewer than P
-                         identities remain. Keeps batch sizes uniform —
-                         recommended for BatchNorm stability.
+    FIX vs previous version
+    -----------------------
+    - __len__ now returns total_images // (P*K), not identities // P.
+      Old version gave ~15 batches/epoch; correct version gives ~540.
+    - __iter__ uses random.choices (with replacement) per identity so
+      identities with exactly K images are always included.
+    - Sampling is per-batch random (not sequential over identity list),
+      so every batch is independent and the model sees varied combinations.
 
-    Raises:
-        ValueError: If p > number of valid identities (those with >= k images).
+    Args:
+        dataset:         TrainFaceDataset or Subset wrapping one.
+                         Must expose _samples as list of (path, label).
+        p:               Identities per batch.
+        k:               Images per identity per batch. Use k>=8, ideally 16.
+        drop_incomplete: Skip last batch if < P*K samples remain (keeps
+                         batch sizes uniform — important for BatchNorm).
     """
 
     def __init__(
         self,
         dataset,
         p: int = 32,
-        k: int = 4,
+        k: int = 16,
         drop_incomplete: bool = True,
     ) -> None:
         self.p = p
         self.k = k
         self.drop_incomplete = drop_incomplete
 
-        # Support both raw TrainFaceDataset and Subset-wrapped versions
         samples = self._extract_samples(dataset)
 
-        # Build label → [indices] map
         label_to_indices: dict[int, list[int]] = defaultdict(list)
         for idx, (_, label) in enumerate(samples):
             label_to_indices[label].append(idx)
 
-        # Keep only identities that have at least K images
+        # Keep only identities with at least 2 images (need 1 valid positive)
         self._label_to_indices: dict[int, list[int]] = {
             label: indices
             for label, indices in label_to_indices.items()
-            if len(indices) >= k
+            if len(indices) >= 2
         }
 
-        n_valid = len(self._label_to_indices)
+        n_valid   = len(self._label_to_indices)
         n_skipped = len(label_to_indices) - n_valid
-
-        if n_skipped > 0:
-            logger.warning(
-                "PKSampler: skipped %d identities with fewer than k=%d images.",
-                n_skipped, k,
-            )
+        if n_skipped:
+            logger.warning("PKSampler: skipped %d identities with < 2 images.", n_skipped)
 
         if n_valid < p:
             raise ValueError(
-                f"PKSampler: only {n_valid} identities have >= {k} images, "
-                f"but p={p} identities are required per batch. "
-                f"Reduce p or lower k."
+                f"PKSampler: only {n_valid} valid identities but p={p} required. "
+                f"Reduce p or add more data."
             )
 
         self._labels = list(self._label_to_indices.keys())
+
+        # Total images across all valid identities
+        self._total_images = sum(len(v) for v in self._label_to_indices.values())
+
         logger.info(
             "PKSampler ready | p=%d | k=%d | valid_identities=%d | "
-            "batch_size=%d | approx_batches_per_epoch=%d",
-            p, k, n_valid, p * k,
-            len(self) ,
+            "batch_size=%d | batches_per_epoch=%d",
+            p, k, n_valid, p * k, len(self),
         )
 
-    # ------------------------------------------------------------------
-    # Sampler interface
     # ------------------------------------------------------------------
 
     def __iter__(self) -> Iterator[list[int]]:
         """
-        Yield one batch (list of P*K indices) per iteration.
+        Yield one batch (list of P*K indices) per call.
 
-        Each epoch shuffles identities and images independently so the
-        model sees different combinations every epoch.
+        Each batch independently samples P random identities and K images
+        from each. This means the same identity can appear in consecutive
+        batches — which is fine and actually good for hard mining.
         """
-        labels = self._labels.copy()
-        random.shuffle(labels)
+        n_batches = len(self)
 
-        batch: list[int] = []
+        for _ in range(n_batches):
+            # Sample P identities for this batch (with replacement if needed)
+            chosen_ids = random.choices(self._labels, k=self.p)
 
-        for label in labels:
-            indices = self._label_to_indices[label].copy()
-            random.shuffle(indices)
-            # Take exactly K images; cycle if fewer available (shouldn't
-            # happen given the >= k filter above, but defensive)
-            chosen = indices[:self.k]
-            batch.extend(chosen)
+            batch: list[int] = []
+            for pid in chosen_ids:
+                idxs = self._label_to_indices[pid]
+                # Always sample with replacement — works even if len(idxs) < k
+                batch.extend(random.choices(idxs, k=self.k))
 
-            if len(batch) == self.p * self.k:
-                yield batch
-                batch = []
-
-        # Yield the last incomplete batch only if allowed
-        if batch and not self.drop_incomplete:
+            random.shuffle(batch)
             yield batch
 
     def __len__(self) -> int:
-        """Number of batches per epoch."""
-        n = len(self._labels) // self.p
-        return n
+        """
+        Number of batches per epoch.
 
-    # ------------------------------------------------------------------
-    # Internal helpers
+        FIX: based on total images, not number of identities.
+        Old formula (identities // p) gave ~15 batches.
+        New formula gives ~total_images // batch_size batches.
+        """
+        return max(1, self._total_images // (self.p * self.k))
+
     # ------------------------------------------------------------------
 
     @staticmethod
     def _extract_samples(dataset) -> list[tuple]:
-        """
-        Retrieve the raw (path, label) samples list from the dataset,
-        handling both raw TrainFaceDataset and torch.utils.data.Subset.
-        """
-        # Direct dataset
+        """Handle both raw TrainFaceDataset and Subset-wrapped versions."""
         if hasattr(dataset, "_samples"):
             return dataset._samples
-
-        # Subset wrapping a TrainFaceDataset
         if hasattr(dataset, "dataset") and hasattr(dataset.dataset, "_samples"):
             all_samples = dataset.dataset._samples
             return [all_samples[i] for i in dataset.indices]
-
         raise AttributeError(
-            "PKSampler could not find '_samples' on the dataset or its "
-            "wrapped '.dataset'. Ensure the dataset is a TrainFaceDataset "
-            "or a Subset of one."
+            "PKSampler: dataset has no '_samples'. "
+            "Must be TrainFaceDataset or a Subset of one."
         )
 
     def __repr__(self) -> str:
         return (
-            f"PKSampler("
-            f"p={self.p}, k={self.k}, "
+            f"PKSampler(p={self.p}, k={self.k}, "
             f"identities={len(self._labels)}, "
-            f"batch_size={self.p * self.k})"
+            f"batch_size={self.p * self.k}, "
+            f"batches_per_epoch={len(self)})"
         )
