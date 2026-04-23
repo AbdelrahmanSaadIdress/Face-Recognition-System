@@ -22,6 +22,11 @@ Usage:
         --dataset    data/raw/Identities \
         --config     configs/base.yaml
 
+python build_database.py \
+        --checkpoint checkpoints/triplet_resnet50_best.pt \
+        --dataset    data/raw/Identities \
+        --config     configs/base.yaml
+
 """
 
 from __future__ import annotations

@@ -61,7 +61,7 @@ preprocessing:
 # Model
 # ---------------------------------------------------------------------------
 model:
-  name: triplet           # softmax | triplet | sphereface | arcface
+  name: sphereface           # softmax | triplet | sphereface | arcface
   backbone: resnet50      # resnet50 | resnet100 | mobilenet_v2
   embedding_dim: 512
   pretrained_backbone: true

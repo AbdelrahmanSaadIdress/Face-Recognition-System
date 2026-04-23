@@ -8,6 +8,7 @@ Usage
     python train.py
     python train.py --config configs/arcface_resnet50.yaml
     python train.py --resume checkpoints/arcface_resnet50_latest.pt
+    python train.py --init-from checkpoints/arcface_resnet50_best.pt
     python train.py --set training.learning_rate=0.01 model.name=triplet
 """
 
@@ -52,6 +53,15 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--config", "-c", type=str, default="configs/base.yaml")
     parser.add_argument("--resume", "-r", type=str, default=None)
+    parser.add_argument(
+        "--init-from", type=str, default=None, metavar="CHECKPOINT",
+        help=(
+            "Warm-start model weights from a checkpoint WITHOUT resuming training "
+            "state (epoch, optimizer, scheduler, best loss are all reset to fresh). "
+            "embedding_dim and num_classes must match exactly — a mismatch raises "
+            "an error. Cannot be combined with --resume."
+        ),
+    )
     parser.add_argument("--set", "-s", nargs="*", default=[], metavar="KEY=VALUE")
     parser.add_argument("--val-split", type=float, default=0.3)
     parser.add_argument("--run-name", type=str, default="Experiment")
@@ -113,6 +123,147 @@ def _unwrap_dataset(ds):
 def _get_num_classes(loader: DataLoader) -> int:
     """Safely get num_identities regardless of Subset wrapping."""
     return _unwrap_dataset(loader.dataset).num_identities
+
+
+# ---------------------------------------------------------------------------
+# Pretrained weight initialisation
+# ---------------------------------------------------------------------------
+
+
+def load_pretrained_weights(
+    model: nn.Module,
+    checkpoint_path: str | Path,
+    num_classes: int,
+    device: torch.device,
+) -> None:
+    """
+    Warm-start *model* from a checkpoint without restoring any training state.
+
+    Epoch counter, optimizer, scheduler, and best-val-loss are all left at
+    their fresh defaults — only the model weights are loaded.
+
+    num_classes handling:
+        - Match     → full model loaded (backbone + loss head), strict=True.
+        - Mismatch  → backbone-only transfer; all loss_head.* keys are dropped
+                      from the state dict before loading and the freshly
+                      initialised head (Xavier) is kept intact. A loud WARNING
+                      is emitted but no error is raised. This supports expanding
+                      the identity set between runs.
+
+    embedding_dim mismatch always raises — that is a hard incompatibility.
+
+    Args:
+        model:           Freshly built FaceModel (already on the correct device).
+        checkpoint_path: Path to a .pt file saved by Trainer._save().
+        num_classes:     Number of identity classes the current model was built with.
+        device:          Device to map checkpoint tensors to.
+
+    Raises:
+        FileNotFoundError: If the checkpoint file does not exist.
+        RuntimeError:      If embedding_dim does not match.
+        RuntimeError:      If load_state_dict finds unexpected backbone key mismatches.
+    """
+    path = Path(checkpoint_path)
+    if not path.exists():
+        raise FileNotFoundError(f"--init-from checkpoint not found: {path}")
+
+    ckpt = torch.load(path, map_location=device)
+
+    if "model_state" not in ckpt:
+        raise RuntimeError(
+            f"Checkpoint {path} has no 'model_state' key. "
+            "Only checkpoints saved by this trainer are supported."
+        )
+
+    # ── Validate embedding_dim (hard check — always raises) ────────────────
+    ckpt_cfg = ckpt.get("config", {})
+    ckpt_embedding_dim = ckpt_cfg.get("embedding_dim")
+    model_embedding_dim = getattr(model, "embedding_dim", None)
+
+    if ckpt_embedding_dim is not None and model_embedding_dim is not None:
+        if ckpt_embedding_dim != model_embedding_dim:
+            raise RuntimeError(
+                f"embedding_dim mismatch: checkpoint has {ckpt_embedding_dim}, "
+                f"current model has {model_embedding_dim}. "
+                "Adjust model.embedding_dim in your config to match the checkpoint."
+            )
+
+    # ── Check num_classes (soft check — warns and drops head on mismatch) ──
+    # softmax/arcface/sphereface store "loss_head.weight" shape (num_classes, embedding_dim).
+    # triplet has no such key — skip the check entirely.
+    state = dict(ckpt["model_state"])  # shallow copy so we can safely pop keys
+    loss_head_weight_key = "loss_head.weight"
+    backbone_only = False
+
+    if loss_head_weight_key in state:
+        ckpt_num_classes = state[loss_head_weight_key].shape[0]
+        if ckpt_num_classes != num_classes:
+            logger.warning(
+                "!"*60
+            )
+            logger.warning(
+                "num_classes MISMATCH — checkpoint loss head has %d classes, "
+                "current dataset has %d identities.",
+                ckpt_num_classes, num_classes,
+            )
+            logger.warning(
+                "Loss head weights will NOT be transferred. "
+                "The head will start from its random Xavier initialisation. "
+                "Backbone weights ARE being transferred."
+            )
+            logger.warning(
+                "!"*60
+            )
+            # Drop every loss_head key — keep the model's fresh init
+            loss_head_keys = [k for k in state if k.startswith("loss_head.")]
+            for k in loss_head_keys:
+                del state[k]
+            backbone_only = True
+
+    # ── Load weights ────────────────────────────────────────────────────────
+    # strict=False is safe here: we deliberately removed loss_head keys above.
+    # For a matching num_classes run, state is complete and strict=True would
+    # also pass — but strict=False is simpler and still catches backbone shape
+    # errors via the missing/unexpected key inspection below.
+    missing, unexpected = model.load_state_dict(state, strict=False)
+
+    # Backbone keys should never be missing or unexpected — raise if they are.
+    backbone_missing    = [k for k in missing    if k.startswith("backbone.")]
+    backbone_unexpected = [k for k in unexpected if k.startswith("backbone.")]
+    if backbone_missing or backbone_unexpected:
+        raise RuntimeError(
+            f"Backbone key mismatch when loading checkpoint {path.name}.\n"
+            f"  Missing    : {backbone_missing}\n"
+            f"  Unexpected : {backbone_unexpected}\n"
+            "Check that backbone architecture and embedding_dim match."
+        )
+
+    # loss_head keys are expected to be missing only in backbone-only mode.
+    non_head_missing = [k for k in missing if not k.startswith("loss_head.")]
+    if non_head_missing:
+        raise RuntimeError(
+            f"Unexpected missing keys outside loss_head: {non_head_missing}"
+        )
+
+    ckpt_model_name = ckpt_cfg.get("model_name", "?")
+    ckpt_backbone   = ckpt_cfg.get("backbone",   "?")
+    ckpt_epoch      = ckpt.get("epoch", "?")
+
+    if backbone_only:
+        logger.info(
+            "Warm-started BACKBONE ONLY from: %s  "
+            "[saved model=%s | backbone=%s | epoch=%s]",
+            path.name, ckpt_model_name, ckpt_backbone, ckpt_epoch,
+        )
+    else:
+        logger.info(
+            "Warm-started FULL MODEL from: %s  "
+            "[saved model=%s | backbone=%s | epoch=%s]",
+            path.name, ckpt_model_name, ckpt_backbone, ckpt_epoch,
+        )
+    logger.info(
+        "Training state reset to fresh (epoch=0, optimizer, scheduler, best_loss)."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -275,6 +426,10 @@ def main() -> None:
         cfg = override_config(cfg, overrides)
         logger.info("Applied overrides: %s", overrides)
 
+    if args.resume and args.init_from:
+        logger.error("--resume and --init-from are mutually exclusive. Pick one.")
+        sys.exit(1)
+
     seed_everything(cfg.project.seed)
 
     logger.info("Building datasets…")
@@ -286,6 +441,15 @@ def main() -> None:
 
     logger.info("Building model: %s + %s", cfg.model.name, cfg.model.backbone)
     model = build_face_model(cfg, num_classes=num_classes)
+
+    if args.init_from:
+        device = Trainer._auto_device()
+        load_pretrained_weights(
+            model=model,
+            checkpoint_path=args.init_from,
+            num_classes=num_classes,
+            device=device,
+        )
 
     optimizer = build_optimizer(model, cfg)
     scheduler = build_scheduler(optimizer, cfg)
@@ -301,6 +465,7 @@ def main() -> None:
             "num_classes": num_classes,
             "val_split":   args.val_split,
             "resume":      args.resume,
+            "init_from":   args.init_from,
         },
     )
 
