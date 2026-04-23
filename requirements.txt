@@ -1,0 +1,13 @@
+facenet-pytorch==2.6.0
+huggingface==0.0.1
+huggingface_hub==1.4.1
+opencv-python==4.13.0.92
+pandas==2.3.3
+pillow==10.2.0
+pymongo==4.17.0
+scikit-learn==1.7.2
+torch==2.2.2
+torchaudio==2.5.1+cu121
+torchvision==0.17.2
+wandb==0.25.1
+chromadb==1.5.8
