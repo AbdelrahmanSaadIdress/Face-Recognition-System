@@ -59,9 +59,9 @@ log = logging.getLogger("build_database")
 # ─────────────────────────────────────────────
 # DEFAULTS  (all overridable via CLI)
 # ─────────────────────────────────────────────
-MAX_IDENTITIES    = 50
-GALLERY_SIZE      = 10    # images per identity  →  stored in ChromaDB
-PROBE_SIZE        = 5     # images per identity  →  held-out for evaluation
+MAX_IDENTITIES    = 100
+GALLERY_SIZE      = 80    # images per identity  →  stored in ChromaDB
+PROBE_SIZE        = 20     # images per identity  →  held-out for evaluation
 TEST_IMG_DIR      = "test_images"
 
 MONGO_URI         = "mongodb+srv://abdo:abdo@cluster0.7v7faph.mongodb.net/?appName=Cluster0"
