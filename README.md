@@ -279,7 +279,7 @@ Triplet Loss training was stopped in this round. **Fixing the mining strategy is
 
 | Change | Previous Rounds | Round 3 |
 |---|---|---|
-| ArcFace / SphereFace epochs | Stopped early (~67–72) | **Full Training** |
+| ArcFace / SphereFace epochs | Stopped early (~67–72) | **Full Training — 200 epochs for arcface/sphereface and 100 epochs for triplet** |
 | Triplet batch construction | Random shuffle (broken) | **PK Sampling — P identities × K images per batch** |
 | Triplet mining strategy | Semi-hard (collapsed due to empty positives) | **BatchHard — hardest positive + hardest negative per anchor** |
 | Dataset size | Small (R1) / Larger for Triplet (R2) | **Small dataset — same as Round 1 for all models** |
